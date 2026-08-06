@@ -7,7 +7,10 @@
 - Publish the course as SCORM/xAPI and upload to your LMS/LRS.
 - It fires when the learner loads that block.
 
-# Using xAPI Proxy Worker
+<img width="768" height="371" alt="xapisnippet" src="https://github.com/user-attachments/assets/ce2ea447-abaf-4303-8f98-aeaaf59c9ce9" />
+
+
+## Using xAPI Proxy Worker
 
 A small Cloudflare Worker that keeps your LRS credentials **out of your course**.
 
