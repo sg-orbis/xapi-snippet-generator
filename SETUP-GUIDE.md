@@ -13,7 +13,7 @@
 
 1. Your **LRS endpoint URL** — e.g. `https://lrs.example.com/xapi/`
 2. Your **LRS key and secret** (or a bearer token)
-3. Your **LMS web address** — e.g. `https://learn.cybersight.org`
+3. Your **LMS web address** — e.g. `https://learn.lmsdomain.com`
 
 ---
 
@@ -53,7 +53,7 @@ This is the important part — it's where your credentials go, safely on the ser
 | Name | Type | Value |
 |---|---|---|
 | `LRS_ENDPOINT` | Text | Your LRS URL, e.g. `https://lrs.example.com/xapi/` |
-| `ALLOWED_ORIGINS` | Text | Your LMS address, e.g. `https://learn.cybersight.org` |
+| `ALLOWED_ORIGINS` | Text | Your LMS address, e.g. `https://learn.lmsdomain.com` |
 | `LRS_KEY` | **Secret** | Your LRS key / username |
 | `LRS_SECRET` | **Secret** | Your LRS password / secret |
 
@@ -62,7 +62,7 @@ This is the important part — it's where your credentials go, safely on the ser
 **Using a token instead of a key/secret?** Skip `LRS_KEY` and `LRS_SECRET` and add a single secret called `LRS_TOKEN` with your token or JWT.
 
 **Multiple LMS domains?** Separate them with commas. You can use `*.` for all subdomains:
-`https://learn.cybersight.org, *.orbis.org`
+`https://learn.lmsdomain.com, *.domain.com`
 
 3. Click **Deploy** to apply.
 
