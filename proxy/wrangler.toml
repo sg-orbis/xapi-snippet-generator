@@ -1,0 +1,20 @@
+# Optional: for deploying with the Wrangler CLI instead of the dashboard.
+#   npm install -g wrangler
+#   wrangler login
+#   wrangler deploy
+#
+# Set secrets (never put them in this file):
+#   wrangler secret put LRS_KEY
+#   wrangler secret put LRS_SECRET
+#   # or, for token auth:
+#   wrangler secret put LRS_TOKEN
+
+name = "xapi-proxy"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+LRS_ENDPOINT = "https://your-lrs.example.com/xapi/"
+ALLOWED_ORIGINS = "https://your-lms.example.com"
+# RATE_LIMIT_PER_MIN = "60"
+# MAX_BODY_BYTES = "102400"

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="panel.css">
+<title>xAPI Snippet Generator</title>
+</head>
+<body>
+<header>
+  <div>
+    <h1>xAPI Snippet</h1>
+    <p>Configure &rarr; Copy &rarr; paste into a Rise <strong>Embed &rsaquo; Code</strong> block.</p>
+  </div>
+  <button id="closeBtn" type="button" aria-label="Close panel">&times;</button>
+</header>
+
+<main>
+  <form id="cfg" autocomplete="off">
+
+    <div class="card">
+      <h2>1 &middot; Connection</h2>
+
+      <label>How should statements reach your LRS?</label>
+      <div class="radios" role="radiogroup" aria-label="Connection mode">
+        <label><input type="radio" name="connMode" value="direct" checked> Direct to LRS</label>
+        <label><input type="radio" name="connMode" value="proxy"> Via proxy (recommended)</label>
+      </div>
+
+      <!-- ===== PROXY MODE ===== -->
+      <div id="proxyFields" class="conditional" hidden>
+        <label for="proxyUrl">Cloudflare Worker URL</label>
+        <input type="url" id="proxyUrl" placeholder="https://xapi-proxy.yourname.workers.dev">
+        <div class="hint">Your worker holds the LRS credentials, so <strong>nothing secret goes into the course</strong>. Setup guide is included with the extension download.</div>
+        <div class="callout" style="background:#e2f3e8;color:#157347;border-color:#157347">
+          <strong>Most secure:</strong> the snippet carries no LRS key or password at all &mdash; learners and the LMS can&rsquo;t read a credential that isn&rsquo;t there.
+        </div>
+      </div>
+
+      <!-- ===== DIRECT MODE ===== -->
+      <div id="directFields" class="conditional">
+        <label for="endpoint">LRS endpoint URL</label>
+        <input type="url" id="endpoint" placeholder="https://cloud.scorm.com/lrs/XXXX/">
+        <div class="hint"><code>/statements</code> is appended automatically.</div>
+
+        <label>Authentication</label>
+        <div class="radios" role="radiogroup" aria-label="Authentication method">
+          <label><input type="radio" name="authType" value="basic" checked> Basic</label>
+          <label><input type="radio" name="authType" value="bearer"> Bearer / JWT</label>
+        </div>
+
+      <div id="basicFields" class="conditional row">
+        <div>
+          <label for="authKey">Key / username</label>
+          <input type="text" id="authKey" placeholder="LRS key">
+        </div>
+        <div>
+          <label for="authSecret">Secret / password</label>
+          <input type="text" id="authSecret" placeholder="LRS secret">
+        </div>
+      </div>
+
+      <div id="bearerFields" class="conditional" hidden>
+        <label for="authToken">Bearer token (paste the full JWT)</label>
+        <input type="text" id="authToken" placeholder="eyJhbGci...">
+      </div>
+
+        <div class="callout">
+          <strong>Heads up:</strong> the credential is visible to learners in the embed. Use a
+          <strong>write-only</strong> key (or a scoped, short-lived JWT), and make sure your LRS allows cross-origin (CORS) POSTs.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2 &middot; Actor</h2>
+      <div class="radios" role="radiogroup" aria-label="Actor source">
+        <label><input type="radio" name="actorSource" value="auto" checked> Auto-detect (SCORM + xAPI)</label>
+        <label><input type="radio" name="actorSource" value="static"> Fixed</label>
+        <label><input type="radio" name="actorSource" value="prompt"> Ask learner</label>
+      </div>
+      <div id="actorLaunchHint" class="hint" style="margin-top:6px">Identifies the learner from <strong>SCORM 2004</strong>, then <strong>SCORM 1.2</strong>, then <strong>xAPI launch</strong> &mdash; whichever your LMS provides. Falls back to the actor below. <em>Note: SCORM has no email field, so the learner ID is used unless your LMS sets it to an email.</em></div>
+      <div id="actorStaticFields" class="conditional row">
+        <div>
+          <label for="actorName">Name <span id="actorNameReq" class="hint" style="display:inline">(fallback)</span></label>
+          <input type="text" id="actorName" placeholder="Jane Learner" value="Anonymous Learner">
+        </div>
+        <div>
+          <label for="actorEmail">Email (mbox)</label>
+          <input type="email" id="actorEmail" placeholder="jane@example.org">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3 &middot; Verb</h2>
+      <select id="verbPreset">
+        <option value="experienced">experienced</option>
+        <option value="launched">launched</option>
+        <option value="initialized">initialized</option>
+        <option value="attempted">attempted</option>
+        <option value="progressed">progressed</option>
+        <option value="viewed">viewed</option>
+        <option value="interacted">interacted</option>
+        <option value="answered">answered</option>
+        <option value="completed">completed</option>
+        <option value="passed">passed</option>
+        <option value="failed">failed</option>
+        <option value="__custom">Custom&hellip;</option>
+      </select>
+      <div id="verbCustomFields" class="conditional row" hidden>
+        <div>
+          <label for="verbId">Verb IRI</label>
+          <input type="url" id="verbId" placeholder="https://example.org/verbs/reviewed">
+        </div>
+        <div>
+          <label for="verbDisplay">Display text</label>
+          <input type="text" id="verbDisplay" placeholder="reviewed">
+        </div>
+      </div>
+      <div class="hint" id="verbIriHint"></div>
+    </div>
+
+    <div class="card">
+      <h2>4 &middot; Object (activity)</h2>
+      <label for="objectId">Activity ID (IRI)</label>
+      <input type="url" id="objectId" placeholder="https://orbis.org/xapi/rise/module-1/intro">
+      <div class="row">
+        <div>
+          <label for="objectName">Name</label>
+          <input type="text" id="objectName" placeholder="Introduction">
+        </div>
+        <div>
+          <label for="objectType">Type</label>
+          <select id="objectType">
+            <option value="http://adlnet.gov/expapi/activities/module">module</option>
+            <option value="http://adlnet.gov/expapi/activities/lesson">lesson</option>
+            <option value="http://adlnet.gov/expapi/activities/course">course</option>
+            <option value="http://adlnet.gov/expapi/activities/interaction">interaction</option>
+            <option value="http://adlnet.gov/expapi/activities/media">media</option>
+            <option value="http://adlnet.gov/expapi/activities/assessment">assessment</option>
+            <option value="">(none)</option>
+          </select>
+        </div>
+      </div>
+      <label for="objectDesc">Description <span class="hint" style="display:inline">(optional)</span></label>
+      <input type="text" id="objectDesc" placeholder="Short description">
+    </div>
+
+    <div class="card">
+      <h2>5 &middot; Domain restriction</h2>
+      <div class="check">
+        <input type="checkbox" id="optDomain">
+        <label for="optDomain">Only fire on my LMS domain(s)</label>
+      </div>
+      <div id="domainFields" class="conditional" hidden>
+        <label for="allowedDomains">Allowed domains &mdash; one per line</label>
+        <textarea id="allowedDomains" rows="3" placeholder="mycompany.lmshost.com&#10;*.mycompany.com"></textarea>
+        <div class="hint">Use <code>*.example.com</code> to allow all subdomains. Statements are skipped everywhere else &mdash; Rise preview links, staging copies, or a re-hosted package.</div>
+        <div class="check">
+          <input type="checkbox" id="optStrictDomain">
+          <label for="optStrictDomain">Strict &mdash; also skip if the domain can&rsquo;t be detected</label>
+        </div>
+        <div class="hint">Leave strict off if unsure: some LMSs sandbox embeds so the domain is unreadable, and strict mode would silently drop those statements.</div>
+        <div class="callout">
+          <strong>Note:</strong> this protects data quality, not the credential. It stops statements from copies of your course &mdash; but anyone editing their own copy can remove the check. Keep using a write-only LRS key.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>6 &middot; Options</h2>
+      <div class="check">
+        <input type="checkbox" id="optOnce" checked>
+        <label for="optOnce">Send only once per learner (<code>localStorage</code> guard)</label>
+      </div>
+      <div class="check">
+        <input type="checkbox" id="optResult">
+        <label for="optResult">Include a result (completion / success / score)</label>
+      </div>
+      <div id="resultFields" class="conditional" hidden>
+        <div class="row">
+          <div class="check" style="margin-top:4px">
+            <input type="checkbox" id="resCompletion" checked>
+            <label for="resCompletion">completion</label>
+          </div>
+          <div class="check" style="margin-top:4px">
+            <input type="checkbox" id="resSuccess">
+            <label for="resSuccess">success</label>
+          </div>
+        </div>
+        <label for="resScore">Scaled score (0&ndash;1, optional)</label>
+        <input type="number" id="resScore" min="0" max="1" step="0.01" placeholder="e.g. 0.9">
+      </div>
+      <div class="check">
+        <input type="checkbox" id="optDebug" checked>
+        <label for="optDebug">Log to browser console (for testing)</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Snippet</h2>
+      <pre class="code" id="snippetOut" tabindex="0" aria-label="Generated snippet"></pre>
+      <textarea id="snippetRaw" class="sr-only" aria-hidden="true" tabindex="-1"></textarea>
+    </div>
+
+    <details class="help">
+      <summary>How to add it in Rise</summary>
+      <ol>
+        <li>Add a block &rarr; <strong>Embed</strong> &rarr; choose <strong>Embed code</strong> (<code>&lt;/&gt;</code>).</li>
+        <li>Paste the copied snippet and click <strong>Insert</strong>.</li>
+        <li>Publish for <strong>xAPI</strong> and upload to your LMS/LRS.</li>
+        <li>It fires when the learner loads that block.</li>
+      </ol>
+    </details>
+  </form>
+</main>
+
+<footer>
+  <div class="toolbar">
+    <button type="button" id="copyBtn" class="action primary">Copy snippet</button>
+    <button type="button" id="downloadBtn" class="action">Download</button>
+    <button type="button" id="resetBtn" class="action">Reset</button>
+  </div>
+  <div class="status-line" id="statusLine" role="status" aria-live="polite"></div>
+</footer>
+
+<script src="panel.js"></script>
+</body>
+</html>
