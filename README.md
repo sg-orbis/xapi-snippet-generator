@@ -1,4 +1,13 @@
-# xAPI Proxy Worker
+# How to use this Chrome Extension?
+- Install this extension on the Chromium web browser.
+- Open rise.articulate.com.
+- On the Rise editor page, you will see the Chrome extension enabled.
+- Click the floating xAPI snippet button (bottom-right).
+- Configure, copy, and paste into the Code block.
+- Publish the course as SCORM/xAPI and upload to your LMS/LRS.
+- It fires when the learner loads that block.
+
+# Using xAPI Proxy Worker
 
 A small Cloudflare Worker that keeps your LRS credentials **out of your course**.
 
