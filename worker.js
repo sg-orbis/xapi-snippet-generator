@@ -11,7 +11,7 @@
  *
  * Required settings (set in the Cloudflare dashboard):
  *   LRS_ENDPOINT     e.g. https://lrs.example.com/xapi/        (Variable)
- *   ALLOWED_ORIGINS  e.g. https://learn.cybersight.org         (Variable)
+ *   ALLOWED_ORIGINS  e.g. https://learn.lmsdomain.com         (Variable)
  *                    comma separated; "*.example.org" wildcards allowed
  * Then EITHER basic auth:
  *   LRS_KEY          your LRS key / username                   (Secret)
