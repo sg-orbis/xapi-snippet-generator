@@ -29,6 +29,7 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; }
+html { background: var(--bg); }
 body {
   font-family: var(--sans);
   background: var(--bg);
@@ -38,6 +39,8 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh; /* avoids mobile URL-bar gap */
+  overflow: hidden; /* only <main> scrolls */
 }
 
 header {
@@ -58,7 +61,13 @@ header p { margin: 0; font-size: .78rem; opacity: .92; }
 }
 #closeBtn:hover { background: rgba(255,255,255,.28); }
 
-main { flex: 1 1 auto; overflow-y: auto; padding: 14px 16px 8px; }
+main {
+  flex: 1 1 auto;
+  min-height: 0; /* required, or the flex item grows to its content height */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 16px 8px;
+}
 
 .card {
   background: var(--panel);
@@ -118,7 +127,7 @@ pre.code {
 }
 
 footer {
-  flex: none; border-top: 1px solid var(--line); background: var(--panel);
+  flex: 0 0 auto; border-top: 1px solid var(--line); background: var(--panel);
   padding: 10px 16px; display: flex; flex-direction: column; gap: 6px;
 }
 .toolbar { display: flex; gap: 8px; }
