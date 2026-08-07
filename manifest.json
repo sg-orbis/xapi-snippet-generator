@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "xAPI Snippet Generator for Articulate Rise",
-  "version": "1.3.1",
-  "description": "Generate an xAPI (Tin Can) statement snippet for a Rise Embed › Code block. Identifies learners via SCORM 1.2, SCORM 2004, or xAPI launch.",
+  "version": "3.0.1",
+  "description": "Build xAPI statement snippets for Articulate Rise.",
   "permissions": [
     "storage",
     "clipboardWrite",
@@ -44,7 +44,8 @@
         "panel.html",
         "panel.js",
         "panel.css",
-        "snippet-template.txt"
+        "snippet-template.txt",
+        "diagnostic-template.txt"
       ],
       "matches": [
         "https://rise.articulate.com/*"

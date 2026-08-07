@@ -7,223 +7,430 @@
 <title>xAPI Snippet Generator</title>
 </head>
 <body>
-<header>
-  <div>
-    <h1>xAPI Snippet</h1>
-    <p>Configure &rarr; Copy &rarr; paste into a Rise <strong>Embed &rsaquo; Code</strong> block.</p>
-  </div>
-  <button id="closeBtn" type="button" aria-label="Close panel">&times;</button>
+
+<!-- ============================== APP BAR ============================== -->
+<header class="bar">
+  <span class="bar-mark" aria-hidden="true">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <path d="M2.6 13.4 8 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="M8 8h5.4M8 8V2.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <circle cx="2.9" cy="13.1" r="1.6" fill="currentColor"/>
+    </svg>
+  </span>
+
+  <span class="bar-name">
+    <b>xAPI Snippet</b>
+    <span class="eyebrow">Articulate Rise</span>
+  </span>
+
+  <span class="bar-gap"></span>
+
+  <select class="preset-pick" id="presetPick" aria-label="Load a saved setup">
+    <option value="">No saved setups</option>
+  </select>
+
+  <button type="button" class="iconbtn" id="themeBtn" title="Theme: follows your system" aria-label="Change theme">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="3.3" stroke="currentColor" stroke-width="1.4"/>
+      <path d="M8 1v1.6M8 13.4V15M15 8h-1.6M2.6 8H1M12.9 3.1l-1.1 1.1M4.2 11.8l-1.1 1.1M12.9 12.9l-1.1-1.1M4.2 4.2 3.1 3.1"
+            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <button type="button" class="iconbtn" id="closeBtn" title="Hide panel (Esc)" aria-label="Hide panel">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  </button>
 </header>
 
-<main>
+<div class="shell">
+
+<!-- ============================= WORKSPACE ============================= -->
+<main class="work">
   <form id="cfg" autocomplete="off">
 
-    <div class="card">
-      <h2>1 &middot; Connection</h2>
+    <!-- ---------- signature: the statement, read back as a sentence ------- -->
+    <section class="stmt" aria-labelledby="stmtHead">
+      <div class="stmt-head">
+        <span class="eyebrow" id="stmtHead">The statement</span>
+        <span class="stmt-flag" id="stmtFlag">Incomplete</span>
+      </div>
+      <p class="sentence" id="sentence"></p>
+      <div class="stmt-meta" id="stmtMeta"></div>
+    </section>
 
-      <label>How should statements reach your LRS?</label>
-      <div class="radios" role="radiogroup" aria-label="Connection mode">
-        <label><input type="radio" name="connMode" value="direct" checked> Direct to LRS</label>
-        <label><input type="radio" name="connMode" value="proxy"> Via proxy (recommended)</label>
+    <!-- ---------- what happened: changes for every block ----------------- -->
+    <div class="group-label"><span class="eyebrow">What happened</span></div>
+
+    <div class="card plain-body">
+      <div class="field">
+        <label class="lbl" for="verbPreset">Verb</label>
+        <select id="verbPreset">
+          <optgroup label="Starting out">
+            <option value="launched">launched</option>
+            <option value="initialized">initialized</option>
+            <option value="attempted">attempted</option>
+          </optgroup>
+          <optgroup label="Working through">
+            <option value="experienced" selected>experienced</option>
+            <option value="viewed">viewed</option>
+            <option value="progressed">progressed</option>
+            <option value="interacted">interacted</option>
+            <option value="answered">answered</option>
+          </optgroup>
+          <optgroup label="Finishing">
+            <option value="completed">completed</option>
+            <option value="passed">passed</option>
+            <option value="failed">failed</option>
+          </optgroup>
+          <optgroup label="Your own">
+            <option value="__custom">Custom verb&hellip;</option>
+          </optgroup>
+        </select>
+        <div class="hint" id="verbIri"></div>
       </div>
 
-      <!-- ===== PROXY MODE ===== -->
-      <div id="proxyFields" class="conditional" hidden>
-        <label for="proxyUrl">Cloudflare Worker URL</label>
-        <input type="url" id="proxyUrl" placeholder="https://xapi-proxy.yourname.workers.dev">
-        <div class="hint">Your worker holds the LRS credentials, so <strong>nothing secret goes into the course</strong>. Setup guide is included with the extension download.</div>
-        <div class="callout" style="background:#e2f3e8;color:#157347;border-color:#157347">
-          <strong>Most secure:</strong> the snippet carries no LRS key or password at all &mdash; learners and the LMS can&rsquo;t read a credential that isn&rsquo;t there.
-        </div>
-      </div>
-
-      <!-- ===== DIRECT MODE ===== -->
-      <div id="directFields" class="conditional">
-        <label for="endpoint">LRS endpoint URL</label>
-        <input type="url" id="endpoint" placeholder="https://cloud.scorm.com/lrs/XXXX/">
-        <div class="hint"><code>/statements</code> is appended automatically.</div>
-
-        <label>Authentication</label>
-        <div class="radios" role="radiogroup" aria-label="Authentication method">
-          <label><input type="radio" name="authType" value="basic" checked> Basic</label>
-          <label><input type="radio" name="authType" value="bearer"> Bearer / JWT</label>
-        </div>
-
-      <div id="basicFields" class="conditional row">
+      <div id="verbCustom" class="field two" hidden>
         <div>
-          <label for="authKey">Key / username</label>
-          <input type="text" id="authKey" placeholder="LRS key">
-        </div>
-        <div>
-          <label for="authSecret">Secret / password</label>
-          <input type="text" id="authSecret" placeholder="LRS secret">
-        </div>
-      </div>
-
-      <div id="bearerFields" class="conditional" hidden>
-        <label for="authToken">Bearer token (paste the full JWT)</label>
-        <input type="text" id="authToken" placeholder="eyJhbGci...">
-      </div>
-
-        <div class="callout">
-          <strong>Heads up:</strong> the credential is visible to learners in the embed. Use a
-          <strong>write-only</strong> key (or a scoped, short-lived JWT), and make sure your LRS allows cross-origin (CORS) POSTs.
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>2 &middot; Actor</h2>
-      <div class="radios" role="radiogroup" aria-label="Actor source">
-        <label><input type="radio" name="actorSource" value="auto" checked> Auto-detect (SCORM + xAPI)</label>
-        <label><input type="radio" name="actorSource" value="static"> Fixed</label>
-        <label><input type="radio" name="actorSource" value="prompt"> Ask learner</label>
-      </div>
-      <div id="actorLaunchHint" class="hint" style="margin-top:6px">Identifies the learner from <strong>SCORM 2004</strong>, then <strong>SCORM 1.2</strong>, then <strong>xAPI launch</strong> &mdash; whichever your LMS provides. Falls back to the actor below. <em>Note: SCORM has no email field, so the learner ID is used unless your LMS sets it to an email.</em></div>
-      <div id="actorStaticFields" class="conditional row">
-        <div>
-          <label for="actorName">Name <span id="actorNameReq" class="hint" style="display:inline">(fallback)</span></label>
-          <input type="text" id="actorName" placeholder="Jane Learner" value="Anonymous Learner">
+          <label class="lbl" for="verbId">Verb IRI</label>
+          <input type="url" id="verbId" class="mono" placeholder="https://example.org/verbs/reviewed" spellcheck="false">
         </div>
         <div>
-          <label for="actorEmail">Email (mbox)</label>
-          <input type="email" id="actorEmail" placeholder="jane@example.org">
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>3 &middot; Verb</h2>
-      <select id="verbPreset">
-        <option value="experienced">experienced</option>
-        <option value="launched">launched</option>
-        <option value="initialized">initialized</option>
-        <option value="attempted">attempted</option>
-        <option value="progressed">progressed</option>
-        <option value="viewed">viewed</option>
-        <option value="interacted">interacted</option>
-        <option value="answered">answered</option>
-        <option value="completed">completed</option>
-        <option value="passed">passed</option>
-        <option value="failed">failed</option>
-        <option value="__custom">Custom&hellip;</option>
-      </select>
-      <div id="verbCustomFields" class="conditional row" hidden>
-        <div>
-          <label for="verbId">Verb IRI</label>
-          <input type="url" id="verbId" placeholder="https://example.org/verbs/reviewed">
-        </div>
-        <div>
-          <label for="verbDisplay">Display text</label>
+          <label class="lbl" for="verbDisplay">Reads as</label>
           <input type="text" id="verbDisplay" placeholder="reviewed">
         </div>
       </div>
-      <div class="hint" id="verbIriHint"></div>
-    </div>
 
-    <div class="card">
-      <h2>4 &middot; Object (activity)</h2>
-      <label for="objectId">Activity ID (IRI)</label>
-      <input type="url" id="objectId" placeholder="https://orbis.org/xapi/rise/module-1/intro">
-      <div class="row">
+      <div class="field">
+        <label class="lbl" for="objectName">What the learner did it to</label>
+        <input type="text" id="objectName" placeholder="Lesson 1">
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="objectId">Activity ID <span class="soft">— a unique, stable address for this block</span></label>
+        <input type="url" id="objectId" class="mono" placeholder="https://example.org/xapi/course/lesson-1" spellcheck="false">
+        <div class="hint">It never has to open in a browser. Keep it stable — change it and your LRS treats it as a different activity.</div>
+      </div>
+
+      <div class="field two">
         <div>
-          <label for="objectName">Name</label>
-          <input type="text" id="objectName" placeholder="Introduction">
-        </div>
-        <div>
-          <label for="objectType">Type</label>
-          <select id="objectType">
-            <option value="http://adlnet.gov/expapi/activities/module">module</option>
+          <label class="lbl" for="objectType">Activity type</label>
+          <select id="objectType" class="mono">
             <option value="http://adlnet.gov/expapi/activities/lesson">lesson</option>
+            <option value="http://adlnet.gov/expapi/activities/module">module</option>
             <option value="http://adlnet.gov/expapi/activities/course">course</option>
             <option value="http://adlnet.gov/expapi/activities/interaction">interaction</option>
             <option value="http://adlnet.gov/expapi/activities/media">media</option>
             <option value="http://adlnet.gov/expapi/activities/assessment">assessment</option>
-            <option value="">(none)</option>
+            <option value="">none</option>
           </select>
         </div>
-      </div>
-      <label for="objectDesc">Description <span class="hint" style="display:inline">(optional)</span></label>
-      <input type="text" id="objectDesc" placeholder="Short description">
-    </div>
-
-    <div class="card">
-      <h2>5 &middot; Domain restriction</h2>
-      <div class="check">
-        <input type="checkbox" id="optDomain">
-        <label for="optDomain">Only fire on my LMS domain(s)</label>
-      </div>
-      <div id="domainFields" class="conditional" hidden>
-        <label for="allowedDomains">Allowed domains &mdash; one per line</label>
-        <textarea id="allowedDomains" rows="3" placeholder="mycompany.lmshost.com&#10;*.mycompany.com"></textarea>
-        <div class="hint">Use <code>*.example.com</code> to allow all subdomains. Statements are skipped everywhere else &mdash; Rise preview links, staging copies, or a re-hosted package.</div>
-        <div class="check">
-          <input type="checkbox" id="optStrictDomain">
-          <label for="optStrictDomain">Strict &mdash; also skip if the domain can&rsquo;t be detected</label>
-        </div>
-        <div class="hint">Leave strict off if unsure: some LMSs sandbox embeds so the domain is unreadable, and strict mode would silently drop those statements.</div>
-        <div class="callout">
-          <strong>Note:</strong> this protects data quality, not the credential. It stops statements from copies of your course &mdash; but anyone editing their own copy can remove the check. Keep using a write-only LRS key.
+        <div>
+          <label class="lbl" for="objectDesc">Description <span class="soft">— optional</span></label>
+          <input type="text" id="objectDesc" placeholder="Short description">
         </div>
       </div>
+
+      <div class="sw-row" style="margin-top:12px">
+        <span class="txt"><b>Report a result</b><span>Completion, success and a score</span></span>
+        <span class="sw"><input type="checkbox" id="optResult" aria-label="Report a result"><i></i></span>
+      </div>
+
+      <div id="resultFields" hidden>
+        <div class="sw-row">
+          <span class="txt"><b>Mark it complete</b><span><code class="inline">completion: true</code></span></span>
+          <span class="sw"><input type="checkbox" id="resCompletion" checked aria-label="Mark it complete"><i></i></span>
+        </div>
+        <div class="sw-row">
+          <span class="txt"><b>Mark it a pass</b><span><code class="inline">success: true</code></span></span>
+          <span class="sw"><input type="checkbox" id="resSuccess" aria-label="Mark it a pass"><i></i></span>
+        </div>
+        <div class="field">
+          <label class="lbl" for="resScore">Scaled score <span class="soft">— 0 to 1, optional</span></label>
+          <input type="number" id="resScore" class="mono" min="0" max="1" step="0.01" placeholder="0.9">
+        </div>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>6 &middot; Options</h2>
-      <div class="check">
-        <input type="checkbox" id="optOnce" checked>
-        <label for="optOnce">Send only once per learner (<code>localStorage</code> guard)</label>
-      </div>
-      <div class="check">
-        <input type="checkbox" id="optResult">
-        <label for="optResult">Include a result (completion / success / score)</label>
-      </div>
-      <div id="resultFields" class="conditional" hidden>
-        <div class="row">
-          <div class="check" style="margin-top:4px">
-            <input type="checkbox" id="resCompletion" checked>
-            <label for="resCompletion">completion</label>
+    <!-- ---------- setup: set once per LMS, then left alone --------------- -->
+    <div class="group-label"><span class="eyebrow">Setup</span></div>
+
+    <!-- where it's sent -->
+    <details class="card fold" id="foldSend">
+      <summary>
+        <span class="tick" id="tickSend" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="6.2" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M5.2 8.2 7.1 10l3.7-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="fold-name">Where it&rsquo;s sent</span>
+        <span class="fold-state" id="stateSend"></span>
+        <svg class="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </summary>
+      <div class="fold-body">
+        <div class="field">
+          <label class="lbl">Delivery</label>
+          <div class="seg" id="segConn" role="radiogroup" aria-label="Delivery">
+            <label data-for="connMode" data-val="direct"><input type="radio" name="connMode" value="direct" checked><span>Direct to LRS</span></label>
+            <label data-for="connMode" data-val="proxy"><input type="radio" name="connMode" value="proxy"><span>Through a proxy</span></label>
           </div>
-          <div class="check" style="margin-top:4px">
-            <input type="checkbox" id="resSuccess">
-            <label for="resSuccess">success</label>
+        </div>
+
+        <!-- proxy -->
+        <div id="proxyFields" hidden>
+          <div class="field">
+            <label class="lbl" for="proxyUrl">Proxy URL</label>
+            <input type="url" id="proxyUrl" class="mono" placeholder="https://xapi-proxy.you.workers.dev" spellcheck="false">
+            <div class="hint">Your worker holds the LRS credentials, so none are written into the course.</div>
+          </div>
+          <div class="note good">
+            <b>Nothing to leak.</b> The snippet carries no key, password or token. Setup steps are in the <code class="inline">proxy</code> folder of the download.
           </div>
         </div>
-        <label for="resScore">Scaled score (0&ndash;1, optional)</label>
-        <input type="number" id="resScore" min="0" max="1" step="0.01" placeholder="e.g. 0.9">
-      </div>
-      <div class="check">
-        <input type="checkbox" id="optDebug" checked>
-        <label for="optDebug">Log to browser console (for testing)</label>
-      </div>
-    </div>
 
-    <div class="card">
-      <h2>Snippet</h2>
-      <pre class="code" id="snippetOut" tabindex="0" aria-label="Generated snippet"></pre>
-      <textarea id="snippetRaw" class="sr-only" aria-hidden="true" tabindex="-1"></textarea>
-    </div>
+        <!-- direct -->
+        <div id="directFields">
+          <div class="field">
+            <label class="lbl" for="endpoint">LRS endpoint</label>
+            <input type="url" id="endpoint" class="mono" placeholder="https://your-lrs.example.com/xapi/" spellcheck="false">
+            <div class="hint"><code>/statements</code> is appended for you.</div>
+          </div>
 
-    <details class="help">
-      <summary>How to add it in Rise</summary>
-      <ol>
-        <li>Add a block &rarr; <strong>Embed</strong> &rarr; choose <strong>Embed code</strong> (<code>&lt;/&gt;</code>).</li>
-        <li>Paste the copied snippet and click <strong>Insert</strong>.</li>
-        <li>Publish for <strong>xAPI</strong> and upload to your LMS/LRS.</li>
-        <li>It fires when the learner loads that block.</li>
-      </ol>
+          <div class="field">
+            <label class="lbl">Credential</label>
+            <div class="seg" id="segAuth" role="radiogroup" aria-label="Credential type">
+              <label data-for="authType" data-val="basic"><input type="radio" name="authType" value="basic" checked><span>Key &amp; secret</span></label>
+              <label data-for="authType" data-val="bearer"><input type="radio" name="authType" value="bearer"><span>Token</span></label>
+            </div>
+          </div>
+
+          <div id="basicFields" class="field two">
+            <div>
+              <label class="lbl" for="authKey">Key</label>
+              <div class="secret">
+                <input type="password" id="authKey" class="mono" placeholder="LRS key" spellcheck="false" autocomplete="off">
+                <button type="button" class="peek" data-peek="authKey" aria-label="Show key">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M1.4 8S3.8 3.9 8 3.9 14.6 8 14.6 8 12.2 12.1 8 12.1 1.4 8 1.4 8Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                    <circle cx="8" cy="8" r="1.9" stroke="currentColor" stroke-width="1.3"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="lbl" for="authSecret">Secret</label>
+              <div class="secret">
+                <input type="password" id="authSecret" class="mono" placeholder="LRS secret" spellcheck="false" autocomplete="off">
+                <button type="button" class="peek" data-peek="authSecret" aria-label="Show secret">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M1.4 8S3.8 3.9 8 3.9 14.6 8 14.6 8 12.2 12.1 8 12.1 1.4 8 1.4 8Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                    <circle cx="8" cy="8" r="1.9" stroke="currentColor" stroke-width="1.3"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="bearerFields" class="field" hidden>
+            <label class="lbl" for="authToken">Bearer token or JWT</label>
+            <div class="secret">
+              <input type="password" id="authToken" class="mono" placeholder="eyJhbGciOi..." spellcheck="false" autocomplete="off">
+              <button type="button" class="peek" data-peek="authToken" aria-label="Show token">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M1.4 8S3.8 3.9 8 3.9 14.6 8 14.6 8 12.2 12.1 8 12.1 1.4 8 1.4 8Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                  <circle cx="8" cy="8" r="1.9" stroke="currentColor" stroke-width="1.3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="sw-row">
+            <span class="txt"><b>Remember this credential</b><span>Stores it unencrypted on this computer so you don&rsquo;t retype it. Leave off on a shared machine.</span></span>
+            <span class="sw"><input type="checkbox" id="optRemember" aria-label="Remember this credential"><i></i></span>
+          </div>
+
+          <div class="note warn">
+            <b>Learners can read this.</b> Anything in a course embed shows up in page source. Use a write-only credential, and allow CORS from your LMS domain only.
+          </div>
+        </div>
+      </div>
     </details>
+
+    <!-- who the learner is -->
+    <details class="card fold" id="foldWho">
+      <summary>
+        <span class="tick ok" id="tickWho" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="6.2" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M5.2 8.2 7.1 10l3.7-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="fold-name">Who the learner is</span>
+        <span class="fold-state" id="stateWho"></span>
+        <svg class="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </summary>
+      <div class="fold-body">
+        <div class="field">
+          <label class="lbl">How the name is found</label>
+          <div class="seg" id="segActor" role="radiogroup" aria-label="How the learner is identified">
+            <label data-for="actorSource" data-val="auto"><input type="radio" name="actorSource" value="auto" checked><span>From the LMS</span></label>
+            <label data-for="actorSource" data-val="static"><input type="radio" name="actorSource" value="static"><span>Fixed name</span></label>
+            <label data-for="actorSource" data-val="prompt"><input type="radio" name="actorSource" value="prompt"><span>Ask learner</span></label>
+          </div>
+        </div>
+
+        <div id="autoNote" class="note">
+          Tries <b>SCORM 2004</b>, then <b>SCORM 1.2</b>, then <b>xAPI launch data</b> — whichever your LMS provides — and falls back to the details below.
+          <br><br>SCORM has no email field, so learners arrive identified by LMS ID and name unless your LMS uses an email as the ID.
+        </div>
+
+        <div class="field two">
+          <div>
+            <label class="lbl" for="actorName">Name <span class="soft" id="nameRole">— fallback</span></label>
+            <input type="text" id="actorName" placeholder="Anonymous Learner">
+          </div>
+          <div>
+            <label class="lbl" for="actorEmail">Email <span class="soft">— optional</span></label>
+            <input type="email" id="actorEmail" class="mono" placeholder="learner@example.com" spellcheck="false">
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- when to send -->
+    <details class="card fold" id="foldWhen">
+      <summary>
+        <span class="tick ok" id="tickWhen" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="6.2" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M5.2 8.2 7.1 10l3.7-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="fold-name">When to send</span>
+        <span class="fold-state" id="stateWhen"></span>
+        <svg class="chev" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </summary>
+      <div class="fold-body">
+        <div class="sw-row lead">
+          <span class="txt"><b>Once per learner</b><span>Stops duplicates if the block re-renders</span></span>
+          <span class="sw"><input type="checkbox" id="optOnce" checked aria-label="Once per learner"><i></i></span>
+        </div>
+
+        <div class="sw-row">
+          <span class="txt"><b>Only from my LMS</b><span>Keeps preview links and review copies out of your LRS</span></span>
+          <span class="sw"><input type="checkbox" id="optDomain" aria-label="Only from my LMS"><i></i></span>
+        </div>
+
+        <div id="domainFields" hidden>
+          <div class="field">
+            <label class="lbl" for="allowedDomains">Allowed domains <span class="soft">— one per line</span></label>
+            <textarea id="allowedDomains" class="mono" rows="2" spellcheck="false" placeholder="learn.example.com&#10;*.example.com"></textarea>
+            <div class="hint">Use <code>*.example.com</code> to allow every subdomain.</div>
+          </div>
+          <div class="sw-row">
+            <span class="txt"><b>Skip when the domain is unreadable</b><span>Some LMSs hide it. Test before turning this on, or you may send nothing at all.</span></span>
+            <span class="sw"><input type="checkbox" id="optStrictDomain" aria-label="Skip when the domain is unreadable"><i></i></span>
+          </div>
+          <div class="note">
+            This protects <b>data quality</b>, not the credential — anyone editing their own copy can delete the check.
+          </div>
+        </div>
+
+        <div class="sw-row">
+          <span class="txt"><b>Log to the console</b><span>Prints each step and any error while you test</span></span>
+          <span class="sw"><input type="checkbox" id="optDebug" checked aria-label="Log to the console"><i></i></span>
+        </div>
+      </div>
+    </details>
+
+    <!-- ---------- saved setups ------------------------------------------- -->
+    <div class="group-label"><span class="eyebrow">Saved setups</span></div>
+
+    <div class="card plain-body">
+      <div class="field">
+        <div class="row">
+          <input type="text" id="presetName" placeholder="Name this setup">
+          <button type="button" class="btn" id="presetSave">Save</button>
+        </div>
+        <div class="hint">Saves everything above, so you can reuse a connection and rules across courses. Pick one from the menu in the title bar to load it.</div>
+      </div>
+      <div class="field" id="presetManage" hidden>
+        <button type="button" class="btn danger" id="presetDelete">Delete the loaded setup</button>
+      </div>
+    </div>
+
+    <textarea id="clipHelper" class="sr-only" aria-hidden="true" tabindex="-1"></textarea>
   </form>
+
+  <footer class="credit">
+    <span>Developed by</span>
+    <a href="https://www.linkedin.com/in/shailesh-elearn/" target="_blank" rel="noopener noreferrer">
+      Shailesh G.
+      <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M6.2 3.4h6.4v6.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12.6 3.4 3.4 12.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="sr-only">(opens LinkedIn in a new tab)</span>
+    </a>
+  </footer>
 </main>
 
-<footer>
-  <div class="toolbar">
-    <button type="button" id="copyBtn" class="action primary">Copy snippet</button>
-    <button type="button" id="downloadBtn" class="action">Download</button>
-    <button type="button" id="resetBtn" class="action">Reset</button>
+<!-- =============================== OUTPUT =============================== -->
+<section class="out" aria-label="Generated output">
+  <div class="tabs" role="tablist">
+    <button type="button" class="tab" id="tabCode" role="tab" aria-selected="true" aria-controls="paneCode">Snippet</button>
+    <button type="button" class="tab" id="tabJson" role="tab" aria-selected="false" aria-controls="paneJson">Statement</button>
+    <button type="button" class="tab" id="tabDiag" role="tab" aria-selected="false" aria-controls="paneDiag">Check</button>
+    <span class="gap"></span>
+    <span class="lines" id="lineCount"></span>
   </div>
-  <div class="status-line" id="statusLine" role="status" aria-live="polite"></div>
-</footer>
+
+  <div class="wells">
+    <pre class="well" id="paneCode" role="tabpanel" tabindex="0" aria-label="Generated snippet"></pre>
+    <pre class="well" id="paneJson" role="tabpanel" tabindex="0" aria-label="Statement preview" hidden></pre>
+    <pre class="well" id="paneDiag" role="tabpanel" tabindex="0" aria-label="Diagnostic snippet" hidden></pre>
+  </div>
+
+  <div class="note tuck" id="diagNote" hidden>
+    <b>A throwaway test block.</b> Paste this into a code block, publish, and launch it. It reports what the course can actually see — SCORM, launch data, domain — and sends nothing to your LRS. Delete it when you&rsquo;re done.
+  </div>
+
+  <div class="out-foot">
+    <div class="acts">
+      <button type="button" class="btn main" id="copyBtn">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="5.5" y="5.5" width="8" height="8" rx="1.6" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M10.5 5.5v-1a1.6 1.6 0 0 0-1.6-1.6H4.1A1.6 1.6 0 0 0 2.5 4.5v4.8c0 .9.7 1.6 1.6 1.6h1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span id="copyLabel">Copy snippet</span>
+      </button>
+      <button type="button" class="btn sq" id="downloadBtn" title="Save as a file" aria-label="Save as a file">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M8 2.6v7.2M5.2 7.2 8 10l2.8-2.8M2.8 12.4h10.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button type="button" class="btn sq" id="resetBtn" title="Clear every field" aria-label="Clear every field">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M13.2 8a5.2 5.2 0 1 1-1.6-3.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M13.4 2.4v3.1h-3.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+    <p class="status" id="status"><span class="pip"></span><span id="statusText"></span></p>
+  </div>
+</section>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="panel.js"></script>
 </body>

@@ -1,9 +1,9 @@
 "use strict";
 (function () {
   var openBtn = document.getElementById("openBtn");
-  var status = document.getElementById("status");
+  var statusEl = document.getElementById("status");
 
-  function setStatus(msg) { status.textContent = msg || ""; }
+  function setStatus(msg) { statusEl.textContent = msg || ""; }
 
   function isRiseAuthoring(url) {
     try {
@@ -16,24 +16,23 @@
     var tab = tabs && tabs[0];
     if (!tab || !isRiseAuthoring(tab.url)) {
       openBtn.disabled = true;
-      setStatus("Open a Rise course (rise.articulate.com) in edit mode, then click here.");
+      setStatus("This works inside a Rise course you're editing. Open one on rise.articulate.com, then come back.");
     }
   });
 
   openBtn.addEventListener("click", function () {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       var tab = tabs && tabs[0];
-      if (!tab) { setStatus("No active tab."); return; }
+      if (!tab) { setStatus("No active tab to open into."); return; }
       chrome.tabs.sendMessage(tab.id, { type: "xag-open-panel" }, function (resp) {
         if (chrome.runtime.lastError) {
-          setStatus("Reload the Rise page once, then try again.");
+          setStatus("Reload the Rise page once, then try again \u2014 the extension needs a fresh page to attach to.");
           return;
         }
         if (resp && resp.ok) {
-          setStatus("Opened. Look for the panel on the right.");
           window.close();
         } else {
-          setStatus("This isn't a Rise authoring page.");
+          setStatus("This page isn't a Rise course in edit mode.");
         }
       });
     });

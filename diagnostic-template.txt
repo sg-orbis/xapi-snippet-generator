@@ -1,0 +1,134 @@
+<!-- ============================================================
+     xAPI DIAGNOSTIC 2 - FULL FRAME WALK  (temporary)
+     Walks EVERY ancestor frame, reads its URL (search AND hash),
+     and hunts for xAPI launch params + TinCan/Rise globals.
+     Sends nothing to your LRS.
+     ============================================================ -->
+<div id="xapi-diag2" style="font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;
+     background:#0f172a;color:#e2e8f0;padding:14px;border-radius:8px;
+     white-space:pre-wrap;word-break:break-word;max-height:70vh;overflow:auto;">Running...</div>
+<script>
+(function () {
+  "use strict";
+  var out = [];
+  function L(s) { out.push(s); }
+
+  function getParam(str, key) {
+    var m = new RegExp("[?&]" + key + "=([^&]+)").exec(str || "");
+    return m ? decodeURIComponent(m[1].replace(/\+/g, " ")) : null;
+  }
+  // Look in BOTH the query string and inside the hash (Absorb uses hash routing)
+  function scanForLaunch(url) {
+    var found = {};
+    var keys = ["actor", "endpoint", "auth", "registration", "activity_id"];
+    for (var i = 0; i < keys.length; i++) {
+      var v = getParam(url, keys[i]);
+      if (v) { found[keys[i]] = v; }
+    }
+    return found;
+  }
+
+  L("=== FRAME WALK (level 0 = this block) ===");
+  var w = window, level = 0, guard = 0;
+  var allUrls = [];
+  while (guard++ < 12) {
+    var label = "L" + level + (w === window.top ? " (TOP)" : "");
+    var href = null;
+    try { href = w.location.href; } catch (e) { href = "BLOCKED (" + e.name + ")"; }
+    L(label + " url: " + href);
+    if (href && href.indexOf("BLOCKED") !== 0) { allUrls.push(href); }
+
+    // globals that would hold the xAPI launch config
+    var globals = [];
+    ["TinCan", "tincan", "TINCAN", "ADL", "XAPIWrapper", "xapiWrapper",
+     "Rise", "RISE", "riseApp", "tc", "TC", "LMSConfig", "player"].forEach(function (g) {
+      try { if (w[g]) { globals.push(g + ":" + typeof w[g]); } } catch (e) {}
+    });
+    L(label + " globals: " + (globals.length ? globals.join(", ") : "none"));
+
+    // any launch params hiding in this level's URL (search or hash)
+    if (href) {
+      var f = scanForLaunch(href);
+      var ks = [];
+      for (var k in f) { if (f.hasOwnProperty(k)) { ks.push(k); } }
+      if (ks.length) {
+        L(label + " *** LAUNCH PARAMS FOUND: " + ks.join(", ") + " ***");
+        if (f.actor) { L(label + " actor = " + f.actor.slice(0, 200)); }
+        if (f.endpoint) { L(label + " endpoint = " + f.endpoint); }
+      }
+    }
+    L("");
+
+    if (w === w.parent) { break; }
+    try { w = w.parent; } catch (e) { L("cannot go higher: " + e.name); break; }
+    level++;
+  }
+
+  L("=== SIBLING / CHILD IFRAMES OF TOP ===");
+  try {
+    var t = window.top;
+    L("top has " + t.frames.length + " child frame(s)");
+    for (var i = 0; i < Math.min(t.frames.length, 8); i++) {
+      try {
+        var fu = t.frames[i].location.href;
+        L("  top.frames[" + i + "]: " + fu);
+        var ff = scanForLaunch(fu);
+        for (var kk in ff) { if (ff.hasOwnProperty(kk)) { L("    -> has " + kk); } }
+      } catch (e) {
+        L("  top.frames[" + i + "]: BLOCKED (" + e.name + ")");
+      }
+    }
+  } catch (e) { L("cannot enumerate top frames: " + e.name); }
+  L("");
+
+  L("=== DEEP SEARCH: any frame whose URL mentions xapi/tincan ===");
+  var hits = 0;
+  function crawl(win, path, depth) {
+    if (depth > 3 || hits > 12) { return; }
+    var n = 0;
+    try { n = win.frames.length; } catch (e) { return; }
+    for (var i = 0; i < n && i < 8; i++) {
+      var child = null;
+      try { child = win.frames[i]; } catch (e) { continue; }
+      var u = null;
+      try { u = child.location.href; } catch (e) { u = null; }
+      if (u && /xapi|tincan|scorm|lesson|index\.html/i.test(u)) {
+        L(path + ".frames[" + i + "]: " + u.slice(0, 220));
+        hits++;
+        var f2 = scanForLaunch(u);
+        for (var k2 in f2) { if (f2.hasOwnProperty(k2)) { L("    *** " + k2 + " present ***"); } }
+      }
+      crawl(child, path + ".frames[" + i + "]", depth + 1);
+    }
+  }
+  try { crawl(window.top, "top", 0); } catch (e) {}
+  if (!hits) { L("(no frame URLs matched)"); }
+  L("");
+
+  L("=== STORAGE / CONFIG PROBES ===");
+  try {
+    var lsKeys = [];
+    for (var s = 0; s < window.top.localStorage.length && s < 40; s++) {
+      var kx = window.top.localStorage.key(s);
+      if (/xapi|tincan|actor|learner|user|absorb|scorm/i.test(kx)) { lsKeys.push(kx); }
+    }
+    L("top.localStorage matching keys: " + (lsKeys.length ? lsKeys.join(", ") : "none"));
+  } catch (e) { L("top.localStorage: BLOCKED (" + e.name + ")"); }
+
+  try {
+    var ssKeys = [];
+    for (var s2 = 0; s2 < window.top.sessionStorage.length && s2 < 40; s2++) {
+      var ky = window.top.sessionStorage.key(s2);
+      if (/xapi|tincan|actor|learner|user|absorb|scorm/i.test(ky)) { ssKeys.push(ky); }
+    }
+    L("top.sessionStorage matching keys: " + (ssKeys.length ? ssKeys.join(", ") : "none"));
+  } catch (e) { L("top.sessionStorage: BLOCKED (" + e.name + ")"); }
+
+  L("");
+  L("=== ALL URLS SEEN ===");
+  for (var z = 0; z < allUrls.length; z++) { L(z + ": " + allUrls[z].slice(0, 260)); }
+
+  document.getElementById("xapi-diag2").textContent = out.join("\n");
+  if (window.console && console.log) { console.log("[xAPI diag2]\n" + out.join("\n")); }
+})();
+</script>
