@@ -5,95 +5,123 @@
 <title>xAPI Snippet Generator</title>
 <style>
   :root{
-    --paper:#f7f5f0; --card:#fff; --card-3:#f1efe9;
-    --rule:#e4e0d8; --ink:#1b2a2e; --slate:#4e6268; --slate-2:#74868b;
-    --teal:#0e7c7b; --teal-deep:#0a5f5e; --teal-wash:#e2efee; --teal-rule:#b9d8d6;
+    --bg:#0a0d12; --s1:#11151d; --s2:#161b25; --s3:#1c2230; --well:#070a0e;
+    --line:rgba(255,255,255,.075); --line-2:rgba(255,255,255,.045);
+    --edge:inset 0 1px 0 rgba(255,255,255,.055);
+    --fg:#e8edf5; --fg-2:#9aa6ba; --fg-3:#6b7789; --fg-4:#4a5464;
+    --ac:#2dd4bf; --ac-hi:#5eead4; --ac-lo:#14b8a6;
+    --ac-wash:rgba(45,212,191,.1); --ac-line:rgba(45,212,191,.3);
+    --ac-glow:rgba(45,212,191,.38); --ac-ink:#04140f;
     --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    color-scheme: light;
+    color-scheme: dark;
   }
-  @media (prefers-color-scheme: dark){
+  @media (prefers-color-scheme: light){
     :root{
-      --paper:#101c21; --card:#16252b; --card-3:#20333a;
-      --rule:#263b43; --ink:#e6ecec; --slate:#a9bbbf; --slate-2:#7f9498;
-      --teal:#3fb3ad; --teal-deep:#5cc7c1; --teal-wash:#122e30; --teal-rule:#1d474a;
-      color-scheme: dark;
+      --bg:#f3f5f8; --s1:#fff; --s2:#fbfcfd; --s3:#eef1f5; --well:#0d1219;
+      --line:rgba(11,18,32,.1); --line-2:rgba(11,18,32,.06);
+      --edge:inset 0 1px 0 rgba(255,255,255,.9);
+      --fg:#0e1621; --fg-2:#4a5768; --fg-3:#6c7a8c; --fg-4:#93a0b0;
+      --ac:#0d9488; --ac-hi:#0f766e; --ac-lo:#0d9488;
+      --ac-wash:rgba(13,148,136,.09); --ac-line:rgba(13,148,136,.3);
+      --ac-glow:rgba(13,148,136,.28); --ac-ink:#fff;
+      color-scheme: light;
     }
   }
   *{box-sizing:border-box}
   body{
     width:296px; margin:0;
-    background:var(--paper); color:var(--ink);
-    font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background-color:var(--bg); color:var(--fg);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,.035) 1px, transparent 0),
+      radial-gradient(130% 50% at 80% -14%, rgba(45,212,191,.09), transparent 62%);
+    background-size:22px 22px, 100% 100%;
+    font:12.5px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-color-scheme: light){
+    body{
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(11,18,32,.045) 1px, transparent 0),
+        radial-gradient(130% 50% at 80% -14%, rgba(13,148,136,.07), transparent 62%);
+      background-size:22px 22px, 100% 100%;
+    }
   }
   .head{
     display:flex; align-items:center; gap:9px;
-    padding:14px 15px 12px;
-    background:var(--card);
-    border-bottom:1px solid var(--rule);
+    padding:13px 15px 12px;
+    background:linear-gradient(180deg,var(--s2),var(--s1));
+    border-bottom:1px solid var(--line);
+    box-shadow:var(--edge), 0 1px 0 rgba(0,0,0,.35);
   }
   .mark{
-    width:26px; height:26px; border-radius:8px; flex:none;
+    width:25px; height:25px; border-radius:8px; flex:none;
     display:grid; place-items:center;
-    background:var(--teal); color:#fff;
+    background:linear-gradient(180deg,var(--ac-hi),var(--ac-lo));
+    color:var(--ac-ink);
+    box-shadow:0 0 0 1px var(--ac-line), 0 0 16px -3px var(--ac-glow),
+               inset 0 1px 0 rgba(255,255,255,.35);
   }
-  .head b{display:block; font-size:12.5px; font-weight:650; letter-spacing:-.008em}
+  .head b{display:block; font-size:12px; font-weight:640; letter-spacing:-.01em}
   .eyebrow{
-    display:block; font:600 8.5px/1 inherit;
-    letter-spacing:.15em; text-transform:uppercase; color:var(--slate-2);
-    margin-top:2px;
+    display:block; font:600 8px/1 var(--mono);
+    letter-spacing:.18em; text-transform:uppercase; color:var(--fg-3);
+    margin-top:3px;
   }
   .body{padding:14px 15px 16px}
-  .body > p{margin:0 0 12px; font-size:11.5px; color:var(--slate); line-height:1.55}
+  .body > p{margin:0 0 12px; font-size:11px; color:var(--fg-2); line-height:1.55}
   #openBtn{
     width:100%;
-    border:1px solid var(--teal-deep); background:var(--teal); color:#fff;
+    border:1px solid var(--ac);
+    background:linear-gradient(180deg,var(--ac-hi),var(--ac-lo));
+    color:var(--ac-ink);
     font:620 12px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    padding:9px; border-radius:6px; cursor:pointer;
-    transition:background .14s ease;
+    padding:9px; border-radius:7px; cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 1px 2px rgba(0,0,0,.4),
+               0 5px 20px -6px var(--ac-glow);
+    transition:box-shadow .16s ease, transform .08s ease;
   }
-  #openBtn:hover{background:var(--teal-deep)}
-  #openBtn:focus-visible{outline:2px solid var(--teal); outline-offset:2px}
-  #openBtn:disabled{opacity:.45; cursor:not-allowed; background:var(--teal)}
+  #openBtn:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.38), 0 1px 2px rgba(0,0,0,.4),
+                             0 7px 26px -6px var(--ac-glow)}
+  #openBtn:active{transform:translateY(1px)}
+  #openBtn:focus-visible{outline:none; box-shadow:0 0 0 3px var(--ac-wash), 0 0 22px -5px var(--ac-glow)}
+  #openBtn:disabled{opacity:.42; cursor:not-allowed; box-shadow:none; transform:none}
   #status{
-    font-size:10.8px; color:var(--slate-2);
+    font-size:10.3px; color:var(--fg-3);
     margin-top:10px; min-height:15px; line-height:1.5;
   }
   ol{
     margin:14px 0 0; padding:0; list-style:none;
-    counter-reset:s; font-size:11px; color:var(--slate); line-height:1.5;
+    counter-reset:s; font-size:10.5px; color:var(--fg-2); line-height:1.5;
   }
-  li{
-    counter-increment:s; position:relative;
-    padding-left:22px; margin:8px 0;
-  }
+  li{counter-increment:s; position:relative; padding-left:22px; margin:8px 0}
   li::before{
     content:counter(s);
     position:absolute; left:0; top:0;
     width:16px; height:16px; border-radius:5px;
     display:grid; place-items:center;
     font:700 9px/1 var(--mono);
-    background:var(--teal-wash); color:var(--teal-deep);
-    border:1px solid var(--teal-rule);
+    background:var(--ac-wash); color:var(--ac);
+    border:1px solid var(--ac-line);
   }
+  strong{color:var(--fg); font-weight:640}
   code{
-    font-family:var(--mono); font-size:.92em;
-    background:var(--card-3); color:var(--slate);
-    padding:1px 4px; border-radius:4px;
+    font-family:var(--mono); font-size:.95em;
+    background:var(--s3); color:var(--fg-2);
+    padding:1px 4px; border-radius:4px; border:1px solid var(--line-2);
   }
   .credit{
     display:flex; align-items:center; justify-content:center; gap:4px;
     margin-top:16px; padding-top:12px;
-    border-top:1px solid var(--rule);
-    font-size:10.5px; color:var(--slate-2);
+    border-top:1px solid var(--line-2);
+    font-size:10px; color:var(--fg-3);
   }
   .credit a{
     display:inline-flex; align-items:center; gap:4px;
     padding:2px 5px; border-radius:4px;
-    color:var(--teal); font-weight:620; text-decoration:none;
+    color:var(--ac); font-weight:620; text-decoration:none;
   }
-  .credit a:hover{background:var(--teal-wash); text-decoration:underline}
-  .credit a:focus-visible{outline:2px solid var(--teal); outline-offset:1px}
+  .credit a:hover{background:var(--ac-wash); text-decoration:underline}
+  .credit a:focus-visible{outline:none; box-shadow:0 0 0 1px var(--ac-line), 0 0 16px -4px var(--ac-glow)}
   .credit svg{flex:none; opacity:.7}
 </style>
 </head>

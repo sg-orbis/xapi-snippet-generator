@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "xAPI Snippet Generator for Articulate Rise",
-  "version": "3.0.1",
-  "description": "Build xAPI statement snippets for Articulate Rise.",
+  "version": "3.1.0",
+  "description": "Build xAPI (Tin Can) statement snippets for Articulate Rise. Live statement preview, SCORM & xAPI learner detection, domain rules, and optional proxy delivery.",
   "permissions": [
     "storage",
     "clipboardWrite",

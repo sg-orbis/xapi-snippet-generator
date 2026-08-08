@@ -86,3 +86,44 @@ popup: *Developed by Shailesh G.*, linking to
 Placed at the end of the scrolling workspace rather than in the action bar, so
 it never takes vertical space away from Copy, and it sits under the left column
 in two-column mode.
+
+---
+
+# v3.1.0 — dark-first console skin
+
+Look and feel only. No markup change, no logic change, no manifest permission
+change. `panel.css`, `content.css` and the popup's inline styles were rewritten;
+every class name is identical, so `panel.html` and `panel.js` are untouched.
+
+The v3.0 skin was deliberately flat — hairline borders, no gradients, minimal
+shadow. That read as plain. Depth now comes from five stacked techniques rather
+than one heavy drop shadow:
+
+1. **Surfaces step up in luminance** as they come forward (`--bg` -> `--s1` ->
+   `--s2` -> `--s3`), so hierarchy is legible without borders doing all the work.
+2. **Every raised surface carries a 1px top-edge highlight** (`--edge`). This is
+   how light behaves on a bevel, and it is the single biggest reason a card
+   stops reading as a flat rectangle.
+3. **The accent casts a colour-matched glow**, not a grey shadow — the primary
+   button, the statement rail, the status pip and the toggle all bloom teal.
+4. **Inputs and the code well are recessed** with inner shadow, the opposite
+   bevel to cards, so a field reads as a hole you type into.
+5. **A faint dot grid** gives the canvas texture at almost no contrast cost,
+   plus one accent bloom behind the top of the panel.
+
+Other changes:
+
+- Dark is now the base, not a variant. Light is still available through the
+  theme button and still follows the system preference, but it is secondary.
+- Accent moved from deep teal `#0e7c7b` to electric teal `#2dd4bf`, which holds
+  up on a near-black canvas and glows.
+- Density tightened roughly 10% — base type 13px to 12.5px, padding reduced
+  throughout.
+- Structural labels are now mono, uppercase and wide-tracked, matching the
+  console vernacular.
+- The status pip reads as an LED, with a glow halo when live.
+- The injected toggle and dock edge were repainted to match, so the host chrome
+  and the panel are one piece.
+
+The v3.0 warm-paper skin is preserved as `panel-v3-paper.css` in case you want
+to switch back — it is a straight file swap.

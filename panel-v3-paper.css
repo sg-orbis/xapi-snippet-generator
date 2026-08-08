@@ -1,0 +1,843 @@
+/* ==========================================================================
+   xAPI Snippet Generator — v3 design system
+
+   Direction
+   ---------
+   An xAPI statement is a sentence: actor, verb, object, result. The panel is
+   built around that fact. A live sentence sits at the top of the workspace and
+   is generated from the same model that emits the JSON, so it doubles as proof
+   that the snippet is correct before you paste it.
+
+   Two rules carry the visual language:
+     1. Monospace means "this is a machine address." IRIs, verbs, keys, domains
+        and activity types are set in mono. Prose is always sans. Nothing else
+        gets mono, so the face itself tells you which fields are identifiers.
+     2. One accent, one weight of emphasis. Deep teal marks state and action.
+        No gradients anywhere.
+   ========================================================================== */
+
+/* ------------------------------- tokens ---------------------------------- */
+
+:root {
+  /* surfaces — warm paper against cool ink */
+  --paper:      #f7f5f0;
+  --card:       #ffffff;
+  --card-2:     #fbfaf7;
+  --card-3:     #f1efe9;
+  --rule:       #e4e0d8;
+  --rule-2:     #efece5;
+
+  /* text */
+  --ink:        #1b2a2e;
+  --slate:      #4e6268;
+  --slate-2:    #74868b;
+  --faint:      #9aa9ad;
+
+  /* accent */
+  --teal:       #0e7c7b;
+  --teal-deep:  #0a5f5e;
+  --teal-wash:  #e2efee;
+  --teal-rule:  #b9d8d6;
+
+  /* states */
+  --amber:      #8a5a0c;
+  --amber-wash: #fbf3e3;
+  --amber-rule: #ead8b2;
+  --clay:       #a8362a;
+  --clay-wash:  #faeae7;
+  --clay-rule:  #ecccc6;
+
+  /* code well — ink shifted toward teal, never pure black */
+  --well:       #14232a;
+  --well-rule:  #1f333b;
+  --c-text:     #c8d6d8;
+  --c-str:      #c2d489;
+  --c-key:      #7fb8d9;
+  --c-num:      #e0a96d;
+  --c-prop:     #8ed0c8;
+  --c-cmt:      #55696f;
+
+  /* geometry */
+  --r1: 6px;
+  --r2: 10px;
+  --r3: 14px;
+  --pill: 999px;
+
+  --sh1: 0 1px 2px rgba(27, 42, 46, .05);
+  --sh2: 0 1px 3px rgba(27, 42, 46, .07), 0 8px 20px -10px rgba(27, 42, 46, .14);
+  --sh3: 0 14px 40px -14px rgba(27, 42, 46, .32);
+
+  --ease: cubic-bezier(.22, .61, .36, 1);
+
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#101c21; --card:#16252b; --card-2:#1a2a31; --card-3:#20333a;
+    --rule:#263b43; --rule-2:#1f3138;
+    --ink:#e6ecec; --slate:#a9bbbf; --slate-2:#7f9498; --faint:#657b80;
+    --teal:#3fb3ad; --teal-deep:#5cc7c1; --teal-wash:#122e30; --teal-rule:#1d474a;
+    --amber:#d9a75c; --amber-wash:#2a2113; --amber-rule:#4a3a1a;
+    --clay:#e8837a; --clay-wash:#2d1815; --clay-rule:#4e2823;
+    --well:#0c161b; --well-rule:#182831;
+    --sh1:0 1px 2px rgba(0,0,0,.4);
+    --sh2:0 1px 3px rgba(0,0,0,.5), 0 8px 20px -10px rgba(0,0,0,.6);
+    --sh3:0 14px 40px -14px rgba(0,0,0,.8);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper:#101c21; --card:#16252b; --card-2:#1a2a31; --card-3:#20333a;
+  --rule:#263b43; --rule-2:#1f3138;
+  --ink:#e6ecec; --slate:#a9bbbf; --slate-2:#7f9498; --faint:#657b80;
+  --teal:#3fb3ad; --teal-deep:#5cc7c1; --teal-wash:#122e30; --teal-rule:#1d474a;
+  --amber:#d9a75c; --amber-wash:#2a2113; --amber-rule:#4a3a1a;
+  --clay:#e8837a; --clay-wash:#2d1815; --clay-rule:#4e2823;
+  --well:#0c161b; --well-rule:#182831;
+  --sh1:0 1px 2px rgba(0,0,0,.4);
+  --sh2:0 1px 3px rgba(0,0,0,.5), 0 8px 20px -10px rgba(0,0,0,.6);
+  --sh3:0 14px 40px -14px rgba(0,0,0,.8);
+  color-scheme: dark;
+}
+
+/* -------------------------------- base ----------------------------------- */
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; height: 100%; }
+html { background: var(--paper); }
+
+body {
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--teal-wash); color: var(--teal-deep); }
+
+* { scrollbar-width: thin; scrollbar-color: var(--rule) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border-radius: var(--pill);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--faint); background-clip: content-box; }
+
+[hidden] { display: none !important; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* Shared micro-label. Uppercase, wide-tracked, used for structural headings
+   only — never for anything the user types into. */
+.eyebrow {
+  font: 600 9.5px/1 var(--sans);
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--slate-2);
+}
+
+/* -------------------------------- app bar -------------------------------- */
+
+.bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--card);
+  border-bottom: 1px solid var(--rule);
+}
+
+.bar-mark {
+  flex: none;
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border-radius: 8px;
+  background: var(--teal);
+  color: #fff;
+}
+
+.bar-name {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.bar-name b {
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: -.008em;
+  white-space: nowrap;
+}
+.bar-name .eyebrow { font-size: 8.5px; }
+
+.bar-gap { flex: 1 1 auto; min-width: 8px; }
+
+.iconbtn {
+  flex: none;
+  width: 28px; height: 28px;
+  padding: 0;
+  display: grid; place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--r1);
+  background: transparent;
+  color: var(--slate-2);
+  cursor: pointer;
+  transition: background .14s var(--ease), color .14s var(--ease);
+}
+.iconbtn:hover { background: var(--card-3); color: var(--ink); }
+.iconbtn:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+
+/* preset switcher lives in the bar — it is how you swap LMS setups, not a
+   step in building a statement */
+.preset-pick {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 190px;
+  font: inherit;
+  font-size: 11.5px;
+  color: var(--slate);
+  background: var(--card-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--r1);
+  padding: 5px 26px 5px 9px;
+  cursor: pointer;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 14px) 52%, calc(100% - 10px) 52%;
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+}
+.preset-pick:hover { border-color: var(--faint); }
+.preset-pick:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+
+/* --------------------------------- shell --------------------------------- */
+
+.shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.work {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 14px 20px;
+}
+
+.out {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--card);
+  border-top: 1px solid var(--rule);
+}
+
+/* Two columns once the dock is dragged wide enough to earn them. The iframe
+   viewport equals the dock width, so a plain media query is the right tool. */
+@media (min-width: 880px) {
+  .shell { flex-direction: row; }
+  .work { flex: 1 1 52%; padding: 16px 16px 24px; }
+  .out {
+    flex: 1 1 48%;
+    min-width: 380px;
+    border-top: 0;
+    border-left: 1px solid var(--rule);
+  }
+}
+
+/* ============================ the statement ==============================
+   Signature element. Reads the configuration back as English so a mistake is
+   obvious before anything is pasted. Values are chips that focus their field.
+   ======================================================================== */
+
+.stmt {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--teal);
+  border-radius: var(--r2);
+  padding: 12px 14px 13px;
+  box-shadow: var(--sh1);
+  margin-bottom: 16px;
+}
+
+.stmt-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.stmt-head .eyebrow { flex: 1 1 auto; }
+
+.stmt-flag {
+  flex: none;
+  font: 600 9.5px/1 var(--sans);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: 4px 7px;
+  border-radius: var(--r1);
+  border: 1px solid var(--rule);
+  background: var(--card-3);
+  color: var(--slate-2);
+}
+.stmt-flag.ready { background: var(--teal-wash); border-color: var(--teal-rule); color: var(--teal-deep); }
+.stmt-flag.wait  { background: var(--amber-wash); border-color: var(--amber-rule); color: var(--amber); }
+
+.sentence {
+  font-size: 14.5px;
+  line-height: 1.85;
+  color: var(--slate);
+  letter-spacing: -.003em;
+}
+
+/* value chip — mono, because every one of these is an identifier or a literal
+   that ends up in the statement verbatim */
+.sentence .chip {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--teal-deep);
+  background: var(--teal-wash);
+  border: 1px solid var(--teal-rule);
+  border-radius: var(--r1);
+  padding: 1px 6px;
+  cursor: pointer;
+  transition: background .13s var(--ease), border-color .13s var(--ease);
+}
+.sentence .chip:hover { background: var(--card); border-color: var(--teal); }
+.sentence .chip:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.sentence .chip.empty {
+  color: var(--amber);
+  background: var(--amber-wash);
+  border-color: var(--amber-rule);
+  border-style: dashed;
+}
+
+/* the verb is the one word that changes meaning, so it carries the emphasis */
+.sentence .verb {
+  font-weight: 700;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  padding: 0 1px;
+  font-family: var(--sans);
+  font-size: 14.5px;
+  cursor: pointer;
+  box-shadow: inset 0 -2px 0 var(--teal-rule);
+  transition: box-shadow .13s var(--ease);
+}
+.sentence .verb:hover { box-shadow: inset 0 -2px 0 var(--teal); }
+.sentence .verb:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+.stmt-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 6px;
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-2);
+}
+.tag {
+  font: 500 10px/1 var(--mono);
+  color: var(--slate-2);
+  background: var(--card-3);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r1);
+  padding: 4px 7px;
+}
+.tag.on { color: var(--teal-deep); background: var(--teal-wash); border-color: var(--teal-rule); }
+.tag.warn { color: var(--amber); background: var(--amber-wash); border-color: var(--amber-rule); }
+
+/* ================================ groups ================================ */
+
+.group-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 20px 2px 9px;
+}
+.group-label:first-child { margin-top: 0; }
+.group-label::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--rule);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--r2);
+  box-shadow: var(--sh1);
+  overflow: hidden;
+}
+.card + .card { margin-top: 8px; }
+
+/* collapsible panel — plain-language name, no step number, because these are
+   not a sequence */
+.fold > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 12px;
+  transition: background .14s var(--ease);
+}
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary:hover { background: var(--card-2); }
+.fold > summary:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+
+.fold-name {
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 620;
+  letter-spacing: -.005em;
+}
+
+.fold-state {
+  flex: 1 1 auto;
+  text-align: right;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--slate-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fold-state.warn { color: var(--amber); }
+
+.tick {
+  flex: none;
+  width: 15px; height: 15px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  color: var(--faint);
+}
+.tick.ok { color: var(--teal); }
+.tick.warn { color: var(--amber); }
+
+.chev {
+  flex: none;
+  color: var(--faint);
+  transition: transform .2s var(--ease);
+}
+.fold[open] > summary .chev { transform: rotate(90deg); }
+
+.fold-body {
+  padding: 3px 12px 14px;
+  border-top: 1px solid var(--rule-2);
+}
+
+.plain-body { padding: 12px 12px 14px; }
+
+/* ================================= form ================================= */
+
+.field { margin-top: 12px; }
+.field:first-child { margin-top: 9px; }
+.plain-body > .field:first-child { margin-top: 0; }
+
+.lbl {
+  display: block;
+  font-size: 11px;
+  font-weight: 620;
+  color: var(--slate);
+  margin-bottom: 5px;
+}
+.lbl .soft { font-weight: 500; color: var(--slate-2); }
+
+.hint {
+  font-size: 10.5px;
+  color: var(--slate-2);
+  margin-top: 5px;
+  line-height: 1.5;
+}
+.hint code, code.inline {
+  font-family: var(--mono);
+  font-size: .93em;
+  background: var(--card-3);
+  color: var(--slate);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+/* Identifier fields carry .mono. This is a semantic class, not a style tweak:
+   it marks every input whose value is a machine address. */
+input[type=text], input[type=url], input[type=email],
+input[type=number], input[type=password], select, textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink);
+  background: var(--card-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--r1);
+  padding: 8px 10px;
+  transition: border-color .14s var(--ease), box-shadow .14s var(--ease), background .14s var(--ease);
+}
+input.mono, textarea.mono, select.mono {
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+
+input::placeholder, textarea::placeholder { color: var(--faint); }
+input:hover, select:hover, textarea:hover { border-color: var(--faint); }
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  background: var(--card);
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px var(--teal-wash);
+}
+input.bad, textarea.bad { border-color: var(--clay); }
+input.bad:focus { box-shadow: 0 0 0 3px var(--clay-wash); }
+
+select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 30px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 15px) 52%, calc(100% - 11px) 52%;
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 60px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+@media (max-width: 430px) { .two { grid-template-columns: 1fr; } }
+
+/* secret input with a reveal control */
+.secret { position: relative; }
+.secret input { padding-right: 34px; }
+.peek {
+  position: absolute;
+  top: 50%; right: 4px;
+  transform: translateY(-50%);
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border: 0; border-radius: var(--r1);
+  background: transparent;
+  color: var(--slate-2);
+  cursor: pointer;
+}
+.peek:hover { background: var(--card-3); color: var(--ink); }
+.peek:focus-visible { outline: 2px solid var(--teal); outline-offset: -1px; }
+
+/* segmented control */
+.seg {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 3px;
+  padding: 3px;
+  background: var(--card-3);
+  border-radius: var(--r1);
+}
+.seg label {
+  position: relative;
+  text-align: center;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 550;
+  color: var(--slate-2);
+  padding: 6px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color .14s var(--ease), background .14s var(--ease), box-shadow .14s var(--ease);
+}
+.seg input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.seg label span { display: block; border-radius: 3px; }
+.seg label:hover { color: var(--slate); }
+.seg label.on {
+  background: var(--card);
+  color: var(--ink);
+  font-weight: 650;
+  box-shadow: var(--sh1);
+}
+/* Keyboard focus was invisible in v2 — the radio is transparent, so the ring
+   is drawn on the span instead. :focus-visible keeps it off mouse clicks. */
+.seg input:focus-visible + span { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+/* switch rows */
+.sw-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule-2);
+}
+.sw-row.lead { border-top: 0; padding-top: 2px; }
+.sw-row .txt { flex: 1 1 auto; min-width: 0; }
+.sw-row .txt b { display: block; font-size: 12px; font-weight: 620; }
+.sw-row .txt span { display: block; font-size: 10.5px; color: var(--slate-2); margin-top: 2px; line-height: 1.45; }
+
+.sw { flex: none; position: relative; width: 34px; height: 20px; margin-top: 1px; }
+.sw input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: pointer; }
+.sw i {
+  position: absolute; inset: 0;
+  border-radius: var(--pill);
+  background: var(--rule);
+  transition: background .18s var(--ease);
+  pointer-events: none;
+}
+.sw i::after {
+  content: "";
+  position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: var(--sh1);
+  transition: transform .18s var(--ease);
+}
+.sw input:checked + i { background: var(--teal); }
+.sw input:checked + i::after { transform: translateX(14px); }
+.sw input:focus-visible + i { box-shadow: 0 0 0 3px var(--teal-wash); }
+
+/* notes */
+.note {
+  margin-top: 11px;
+  border-radius: var(--r1);
+  padding: 9px 11px;
+  font-size: 10.8px;
+  line-height: 1.55;
+  border: 1px solid var(--rule);
+  background: var(--card-3);
+  color: var(--slate);
+}
+.note b { font-weight: 650; }
+.note.warn { background: var(--amber-wash); border-color: var(--amber-rule); color: var(--amber); }
+.note.good { background: var(--teal-wash); border-color: var(--teal-rule); color: var(--teal-deep); }
+
+/* preset save row */
+.row { display: flex; gap: 7px; align-items: center; }
+.row > input { flex: 1 1 auto; }
+
+/* ================================ credit ================================ */
+
+.credit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+  font-size: 10.5px;
+  color: var(--slate-2);
+}
+.credit a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  color: var(--teal);
+  font-weight: 620;
+  text-decoration: none;
+  transition: background .13s var(--ease);
+}
+.credit a:hover { background: var(--teal-wash); text-decoration: underline; }
+.credit a:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.credit svg { flex: none; opacity: .7; }
+
+/* ================================ output ================================ */
+
+.tabs {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 7px 8px 0;
+  background: var(--card-2);
+  border-bottom: 1px solid var(--rule-2);
+}
+.tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 550;
+  color: var(--slate-2);
+  padding: 7px 10px 8px;
+  border-radius: var(--r1) var(--r1) 0 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .14s var(--ease), border-color .14s var(--ease), background .14s var(--ease);
+}
+.tab:hover { color: var(--slate); background: var(--card-3); }
+.tab[aria-selected="true"] { color: var(--teal); border-bottom-color: var(--teal); }
+.tab:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+.tabs .gap { flex: 1 1 auto; }
+.lines {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  padding-right: 8px;
+  white-space: nowrap;
+}
+
+.wells {
+  flex: 1 1 auto;
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+}
+pre.well {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 13px 14px;
+  background: var(--well);
+  color: var(--c-text);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.65;
+  white-space: pre;
+  tab-size: 2;
+  overflow: auto;
+}
+pre.well:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+pre.well .s { color: var(--c-str); }
+pre.well .k { color: var(--c-key); }
+pre.well .n { color: var(--c-num); }
+pre.well .p { color: var(--c-prop); }
+pre.well .c { color: var(--c-cmt); font-style: italic; }
+
+@media (max-width: 879px) {
+  .wells { max-height: 260px; }
+  pre.well { max-height: 260px; }
+}
+
+.out-foot {
+  flex: 0 0 auto;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--rule-2);
+  background: var(--card);
+}
+.acts { display: flex; gap: 7px; }
+
+.btn {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 620;
+  cursor: pointer;
+  border-radius: var(--r1);
+  border: 1px solid var(--rule);
+  background: var(--card-2);
+  color: var(--ink);
+  padding: 9px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background .14s var(--ease), border-color .14s var(--ease), transform .08s var(--ease);
+}
+.btn:hover { background: var(--card-3); border-color: var(--faint); }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.btn.main {
+  flex: 1 1 auto;
+  background: var(--teal);
+  border-color: var(--teal-deep);
+  color: #fff;
+}
+.btn.main:hover { background: var(--teal-deep); border-color: var(--teal-deep); }
+.btn.sq { padding: 9px 10px; }
+.btn.danger { color: var(--clay); border-color: var(--clay-rule); background: var(--clay-wash); }
+.btn.danger:hover { background: var(--clay); color: #fff; border-color: var(--clay); }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+
+.status {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 10.8px;
+  line-height: 1.45;
+  color: var(--slate-2);
+  margin: 9px 0 0;
+  min-height: 15px;
+}
+.status .pip {
+  flex: none;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--faint);
+  margin-top: 5px;
+}
+.status.ok { color: var(--teal); }
+.status.ok .pip { background: var(--teal); }
+.status.bad { color: var(--clay); }
+.status.bad .pip { background: var(--clay); }
+
+.note.tuck { margin: 0 12px 12px; }
+
+/* ================================= toast ================================ */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  top: 50px;
+  transform: translate(-50%, -10px);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 11.5px;
+  font-weight: 620;
+  padding: 9px 15px;
+  border-radius: var(--pill);
+  box-shadow: var(--sh3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s var(--ease), transform .2s var(--ease);
+  z-index: 60;
+  max-width: 88%;
+  text-align: center;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

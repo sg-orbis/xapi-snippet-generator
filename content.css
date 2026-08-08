@@ -1,15 +1,16 @@
 /* ==========================================================================
-   Injected host UI. Everything is prefixed xag- so it cannot collide with
-   Rise's own styles.
+   Injected host UI — v4 dark console skin.
 
-   v3 change: the dock is NON-MODAL. There is no backdrop and no pointer
-   blocking, so the Rise editor stays fully interactive while the panel is
-   open — you can configure a snippet and paste it into a code block without
-   closing anything.
+   Everything is prefixed xag- so it cannot collide with Rise's own styles.
+   The dock stays NON-MODAL: no backdrop, no pointer blocking, so the Rise
+   editor is fully interactive while the panel is open.
    ========================================================================== */
 
 :root {
   --xag-dock-w: 560px;
+  --xag-ac: #2dd4bf;
+  --xag-ac-lo: #14b8a6;
+  --xag-glow: rgba(45, 212, 191, .45);
 }
 
 /* ---------------------------------- toggle -------------------------------- */
@@ -25,30 +26,39 @@
   gap: 8px;
   padding: 9px 15px 9px 12px;
 
-  border: 1px solid #0a5f5e;
+  border: 1px solid var(--xag-ac);
   border-radius: 999px;
-  background: #0e7c7b;
-  color: #fff;
-  font: 600 12.5px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(180deg, #1c2230, #11151d);
+  color: var(--xag-ac);
+  font: 620 12.5px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   letter-spacing: .01em;
   cursor: pointer;
 
-  box-shadow: 0 1px 2px rgba(12, 30, 34, .16), 0 10px 24px -10px rgba(14, 124, 123, .6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .07),
+    0 2px 6px rgba(0, 0, 0, .5),
+    0 0 22px -6px var(--xag-glow);
   transition: transform .22s cubic-bezier(.22, .61, .36, 1),
               box-shadow .18s cubic-bezier(.22, .61, .36, 1),
-              background .18s ease;
+              color .18s ease;
 }
 
 #xag-toggle:hover {
-  background: #0a6b6a;
-  box-shadow: 0 2px 5px rgba(12, 30, 34, .2), 0 14px 30px -10px rgba(14, 124, 123, .7);
+  color: #5eead4;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .1),
+    0 2px 8px rgba(0, 0, 0, .55),
+    0 0 30px -6px var(--xag-glow);
 }
 
 #xag-toggle:active { transform: translateY(1px); }
 
 #xag-toggle:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
+  outline: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .1),
+    0 0 0 3px rgba(45, 212, 191, .28),
+    0 0 30px -6px var(--xag-glow);
 }
 
 #xag-toggle svg { display: block; }
@@ -83,7 +93,7 @@
   transform: translateX(101%);
   transition: transform .28s cubic-bezier(.22, .61, .36, 1);
 
-  /* Non-modal: the dock itself takes pointer events, nothing else does. */
+  /* Non-modal: the dock takes pointer events, nothing else does. */
   pointer-events: none;
 }
 
@@ -97,9 +107,11 @@
   width: 100%;
   height: 100%;
   border: 0;
-  background: #f7f5f0;
-  box-shadow: -1px 0 0 rgba(27, 42, 46, .1),
-              -28px 0 56px -28px rgba(27, 42, 46, .3);
+  background: #0a0d12;
+  box-shadow:
+    -1px 0 0 rgba(45, 212, 191, .22),
+    -2px 0 0 rgba(0, 0, 0, .5),
+    -34px 0 64px -30px rgba(0, 0, 0, .85);
 }
 
 /* ---------------------------------- resizer ------------------------------ */
@@ -126,7 +138,8 @@
   height: 44px;
   margin-top: -22px;
   border-radius: 999px;
-  background: rgba(27, 42, 46, .18);
+  background: var(--xag-ac);
+  box-shadow: 0 0 12px 1px var(--xag-glow);
   opacity: 0;
   transition: opacity .16s ease;
 }
@@ -135,7 +148,7 @@
 #xag-grip:focus-visible::after,
 #xag-dock.xag-resizing #xag-grip::after { opacity: 1; }
 
-#xag-grip:focus-visible { outline: 2px solid #0e7c7b; outline-offset: -2px; }
+#xag-grip:focus-visible { outline: none; }
 
 /* Transparent capture layer, only present during a drag. Without it the
    pointer crosses into the iframe and mousemove events stop arriving. */
@@ -158,13 +171,26 @@
   #xag-toggle.xag-shifted { transform: translateX(0); opacity: 0; pointer-events: none; }
 }
 
-@media (prefers-color-scheme: dark) {
+/* The panel is dark-first, but it honours a light system preference. Match
+   the host chrome so the dock edge does not glow against a light panel. */
+@media (prefers-color-scheme: light) {
   #xag-frame {
-    background: #101c21;
-    box-shadow: -1px 0 0 rgba(255, 255, 255, .07),
-                -28px 0 56px -28px rgba(0, 0, 0, .8);
+    background: #f3f5f8;
+    box-shadow:
+      -1px 0 0 rgba(13, 148, 136, .28),
+      -34px 0 64px -30px rgba(11, 18, 32, .35);
   }
-  #xag-grip::after { background: rgba(255, 255, 255, .22); }
+  #xag-toggle {
+    background: linear-gradient(180deg, #0d9488, #0f766e);
+    border-color: #0f766e;
+    color: #fff;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, .25),
+      0 2px 6px rgba(11, 18, 32, .2),
+      0 0 22px -8px rgba(13, 148, 136, .5);
+  }
+  #xag-toggle:hover { color: #fff; }
+  #xag-grip::after { background: #0d9488; box-shadow: 0 0 10px 1px rgba(13, 148, 136, .5); }
 }
 
 @media (prefers-reduced-motion: reduce) {
