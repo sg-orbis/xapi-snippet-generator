@@ -328,7 +328,17 @@
     }
 
     els.sentence.innerHTML = who + " " + verbEl + " " + what + tail + ".";
+
+    /* Mark the verb when it actually changed. Typing into a text field must
+       never trigger this, which is why it keys off the resolved verb IRI
+       rather than any input event. */
+    if (lastVerbId !== null && lastVerbId !== m.verb.id) {
+      pulse(els.sentence.querySelector(".verb"), "flash", 520);
+    }
+    lastVerbId = m.verb.id;
   }
+
+  var lastVerbId = null;
 
   function buildMeta(m) {
     var tags = [];
@@ -368,9 +378,102 @@
       var target = $(b.getAttribute("data-goto"));
       if (!target) return;
       var fold = target.closest("details");
-      if (fold && !fold.open) fold.open = true;
+      if (fold && !fold.open) animateFold(fold, true);
       target.scrollIntoView({ block: "center", behavior: "smooth" });
       try { target.focus({ preventScroll: true }); } catch (err) { target.focus(); }
+    });
+  }
+
+
+  /* =============================== motion ===============================
+     Height cannot be transitioned on a <details> element in CSS, because the
+     browser toggles display on the content. So the accordion is driven here
+     with the Web Animations API while the open attribute stays authoritative
+     for accessibility — a screen reader still sees a normal disclosure.
+
+     Every entry point checks prefers-reduced-motion and falls back to the
+     native instant behaviour. */
+
+  var reduceMotion = window.matchMedia
+    ? window.matchMedia("(prefers-reduced-motion: reduce)")
+    : { matches: false };
+
+  var EASE_OUT = "cubic-bezier(.16, .84, .44, 1)";
+  var canAnimate = typeof Element !== "undefined" && !!Element.prototype.animate;
+
+  function motionOff() { return reduceMotion.matches || !canAnimate; }
+
+  /* Brief class toggle used for one-shot keyframes. Forcing a reflow between
+     remove and add is what lets the same animation replay back to back. */
+  function pulse(el, cls, ms) {
+    if (!el || motionOff()) return;
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+    setTimeout(function () { el.classList.remove(cls); }, ms);
+  }
+
+  var foldAnims = new WeakMap();
+
+  function animateFold(details, open) {
+    var body = details.querySelector(".fold-body");
+    if (!body || motionOff()) { details.open = open; return; }
+
+    var running = foldAnims.get(details);
+    if (running) { running.cancel(); foldAnims.delete(details); }
+
+    details.dataset.xagIntent = open ? "1" : "0";
+
+    if (open) {
+      details.open = true;
+      var target = body.offsetHeight;
+      body.style.overflow = "hidden";
+      var a = body.animate(
+        [{ height: "0px", opacity: 0 }, { height: target + "px", opacity: 1 }],
+        { duration: 210, easing: EASE_OUT }
+      );
+      foldAnims.set(details, a);
+      a.onfinish = a.oncancel = function () {
+        body.style.overflow = "";
+        body.style.height = "";
+        foldAnims.delete(details);
+      };
+    } else {
+      var from = body.offsetHeight;
+      body.style.overflow = "hidden";
+      var b = body.animate(
+        [{ height: from + "px", opacity: 1 }, { height: "0px", opacity: 0 }],
+        { duration: 170, easing: EASE_OUT }
+      );
+      foldAnims.set(details, b);
+      b.onfinish = function () {
+        details.open = false;
+        body.style.overflow = "";
+        body.style.height = "";
+        foldAnims.delete(details);
+      };
+      b.oncancel = function () {
+        body.style.overflow = "";
+        body.style.height = "";
+        foldAnims.delete(details);
+      };
+    }
+  }
+
+  function wireFolds() {
+    [els.foldSend, els.foldWho, els.foldWhen].forEach(function (d) {
+      if (!d) return;
+      var summary = d.querySelector("summary");
+      if (!summary) return;
+      summary.addEventListener("click", function (e) {
+        if (motionOff()) return;   // let the browser do it natively
+        e.preventDefault();
+        /* d.open stays true for the duration of a closing animation, so read
+           the intent instead — otherwise a fast second click closes twice. */
+        var intent = d.dataset.xagIntent;
+        var openNow = (intent === undefined) ? d.open : (intent === "1");
+        animateFold(d, !openNow);
+      });
     });
   }
 
@@ -392,6 +495,8 @@
 
     return { sendOk: sendOk, whatOk: whatOk, whenOk: whenOk, isProxy: isProxy };
   }
+
+  var wasReady = null;
 
   function paintTick(el, state) {
     el.className = "tick " + state;
@@ -428,10 +533,22 @@
     els.stateWhen.className = "fold-state" + (v.whenOk ? "" : " warn");
     paintTick(els.tickWhen, v.whenOk ? "ok" : "warn");
 
-    /* the flag on the statement card */
+    /* the flag on the statement card. The pulse fires on the transition into
+       Ready only — never on every keystroke while already ready. */
     var ready = v.sendOk && v.whatOk && v.whenOk;
+    var becameReady = ready && wasReady === false;
+    wasReady = ready;
+
     els.stmtFlag.textContent = ready ? "Ready" : "Incomplete";
     els.stmtFlag.className = "stmt-flag " + (ready ? "ready" : "wait");
+
+    if (becameReady) {
+      pulse(document.querySelector(".stmt"), "just-ready", 700);
+      pulse(els.stmtFlag, "just-ready", 260);
+    }
+    /* The status pip is pulsed by the caller, not here: paintStatus() runs
+       next and assigns className wholesale, which would wipe the class. */
+    return becameReady;
   }
 
   function setStatus(msg, kind) {
@@ -477,8 +594,12 @@
     };
     Object.keys(map).forEach(function (k) {
       var on = k === which;
+      var wasHidden = map[k][1].hidden;
       map[k][0].setAttribute("aria-selected", on ? "true" : "false");
       map[k][1].hidden = !on;
+      /* Only animate a pane that is actually appearing, so a re-render of the
+         already-visible pane does not flicker on every keystroke. */
+      if (on && wasHidden) pulse(map[k][1], "pane-in", 240);
     });
     els.diagNote.hidden = which !== "diag";
     els.copyLabel.textContent =
@@ -534,8 +655,9 @@
     buildMeta(m);
 
     var v = evaluate();
-    paintStates(m, v);
+    var becameReady = paintStates(m, v);
     paintStatus(v);
+    if (becameReady) pulse(els.status, "just-ok", 700);
 
     els.endpoint.classList.toggle("bad", !isProxy && !!els.endpoint.value && !isUrl(els.endpoint.value));
     els.proxyUrl.classList.toggle("bad", isProxy && !!els.proxyUrl.value && !isUrl(els.proxyUrl.value));
@@ -663,6 +785,7 @@
           : "Snippet copied");
       var prev = els.copyLabel.textContent;
       els.copyLabel.textContent = "Copied";
+      pulse(els.copyBtn, "copied", 600);
       setTimeout(function () { els.copyLabel.textContent = prev; }, 1500);
     }
 
@@ -736,11 +859,13 @@
 
   /* =============================== theme ================================ */
 
-  var THEMES = ["auto", "light", "dark"];
+  /* Dark-first: dark is the default on first run. "auto" is still available
+     through the cycle, but it is opt-in rather than the starting state. */
+  var THEMES = ["dark", "light", "auto"];
   var THEME_TITLE = {
-    auto: "Theme: follows your system",
+    dark: "Theme: dark",
     light: "Theme: light",
-    dark: "Theme: dark"
+    auto: "Theme: follows your system"
   };
 
   function applyTheme(t) {
@@ -750,7 +875,7 @@
   }
 
   function cycleTheme() {
-    var cur = document.documentElement.getAttribute("data-theme") || "auto";
+    var cur = document.documentElement.getAttribute("data-theme") || "dark";
     var next = THEMES[(THEMES.indexOf(cur) + 1) % THEMES.length];
     applyTheme(next);
     if (hasStorage) {
@@ -853,6 +978,22 @@
     seedDefaults();
     setInitialFolds();
     regenerate();
+    wireFolds();
+    playBootIn();
+  }
+
+  /* One staged rise on first paint, then the classes come off so nothing
+     re-animates on later re-renders. */
+  function playBootIn() {
+    if (motionOff()) return;
+    var work = document.querySelector(".work");
+    var out = document.querySelector(".out");
+    if (work) work.classList.add("boot");
+    if (out) out.classList.add("boot");
+    setTimeout(function () {
+      if (work) work.classList.remove("boot");
+      if (out) out.classList.remove("boot");
+    }, 800);
   }
 
   function boot() {
@@ -862,13 +1003,13 @@
           if (hasStorage) {
             try {
               chrome.storage.local.get(THEME_KEY, function (r) {
-                applyTheme((r && r[THEME_KEY]) || "auto");
+                applyTheme((r && r[THEME_KEY]) || "dark");
                 finish();
               });
               return;
             } catch (e) {}
           }
-          applyTheme("auto");
+          applyTheme("dark");
           finish();
         });
       });

@@ -30,7 +30,10 @@
   --s1:        #11151d;
   --s2:        #161b25;
   --s3:        #1c2230;
-  --well:      #070a0e;
+  --well:      #070a0e;   /* code pane only */
+  --field:     #070a0e;   /* recessed inputs, seg tracks, switch tracks */
+  --inset:     inset 0 1px 2px rgba(0, 0, 0, .5);
+  --inset-2:   inset 0 1px 3px rgba(0, 0, 0, .5);
 
   --line:      rgba(255, 255, 255, .075);
   --line-2:    rgba(255, 255, 255, .045);
@@ -41,8 +44,8 @@
 
   --fg:        #e8edf5;
   --fg-2:      #9aa6ba;
-  --fg-3:      #6b7789;
-  --fg-4:      #4a5464;
+  --fg-3:      #7d8a9d;
+  --fg-4:      #78859a;
 
   --ac:        #2dd4bf;
   --ac-hi:     #5eead4;
@@ -64,7 +67,7 @@
   --c-key:  #7cc4ff;
   --c-num:  #ffb86c;
   --c-prop: #5eead4;
-  --c-cmt:  #4c5a68;
+  --c-cmt:  #6d7f8e;
 
   --r1: 7px;
   --r2: 11px;
@@ -88,12 +91,14 @@
    Secondary by design. Legible and consistent, but dark is the product. */
 
 :root[data-theme="light"] {
-  --bg:#f3f5f8; --s1:#ffffff; --s2:#fbfcfd; --s3:#eef1f5; --well:#0d1219;
+  --bg:#f3f5f8; --s1:#ffffff; --s2:#fbfcfd; --s3:#eef1f5; --well:#0d1219; --field:#e9edf3;
+  --inset:inset 0 1px 2px rgba(11,18,32,.07);
+  --inset-2:inset 0 1px 3px rgba(11,18,32,.08);
   --line:rgba(11,18,32,.1); --line-2:rgba(11,18,32,.06); --line-hi:rgba(11,18,32,.16);
   --edge:inset 0 1px 0 rgba(255,255,255,.9);
   --edge-hi:inset 0 1px 0 rgba(255,255,255,1);
-  --fg:#0e1621; --fg-2:#4a5768; --fg-3:#6c7a8c; --fg-4:#93a0b0;
-  --ac:#0d9488; --ac-hi:#0f766e; --ac-lo:#0d9488;
+  --fg:#0e1621; --fg-2:#4a5768; --fg-3:#5d6b7c; --fg-4:#5f6c7b;
+  --ac:#0f766e; --ac-hi:#0f766e; --ac-lo:#0d6b64;
   --ac-wash:rgba(13,148,136,.09); --ac-line:rgba(13,148,136,.3);
   --ac-glow:rgba(13,148,136,.28); --ac-ink:#ffffff;
   --warn:#a16207; --warn-wash:rgba(161,98,7,.1); --warn-line:rgba(161,98,7,.26);
@@ -106,12 +111,14 @@
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    --bg:#f3f5f8; --s1:#ffffff; --s2:#fbfcfd; --s3:#eef1f5; --well:#0d1219;
+    --bg:#f3f5f8; --s1:#ffffff; --s2:#fbfcfd; --s3:#eef1f5; --well:#0d1219; --field:#e9edf3;
+  --inset:inset 0 1px 2px rgba(11,18,32,.07);
+  --inset-2:inset 0 1px 3px rgba(11,18,32,.08);
     --line:rgba(11,18,32,.1); --line-2:rgba(11,18,32,.06); --line-hi:rgba(11,18,32,.16);
     --edge:inset 0 1px 0 rgba(255,255,255,.9);
     --edge-hi:inset 0 1px 0 rgba(255,255,255,1);
-    --fg:#0e1621; --fg-2:#4a5768; --fg-3:#6c7a8c; --fg-4:#93a0b0;
-    --ac:#0d9488; --ac-hi:#0f766e; --ac-lo:#0d9488;
+    --fg:#0e1621; --fg-2:#4a5768; --fg-3:#5d6b7c; --fg-4:#5f6c7b;
+    --ac:#0f766e; --ac-hi:#0f766e; --ac-lo:#0d6b64;
     --ac-wash:rgba(13,148,136,.09); --ac-line:rgba(13,148,136,.3);
     --ac-glow:rgba(13,148,136,.28); --ac-ink:#ffffff;
     --warn:#a16207; --warn-wash:rgba(161,98,7,.1); --warn-line:rgba(161,98,7,.26);
@@ -501,11 +508,11 @@ input[type=number], input[type=password], select, textarea {
   font: inherit;
   font-size: 12px;
   color: var(--fg);
-  background-color: var(--well);
+  background-color: var(--field);
   border: 1px solid var(--line);
   border-radius: var(--r1);
   padding: 8px 10px;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .5);
+  box-shadow: var(--inset);
   transition: border-color .14s var(--ease), box-shadow .14s var(--ease);
 }
 input.mono, textarea.mono, select.mono { font-family: var(--mono); font-size: 11px; }
@@ -515,13 +522,13 @@ input:hover, select:hover, textarea:hover { border-color: var(--line-hi); }
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--ac);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .5),
+  box-shadow: var(--inset),
               0 0 0 3px var(--ac-wash),
               0 0 16px -4px var(--ac-glow);
 }
 input.bad, textarea.bad { border-color: var(--bad); }
 input.bad:focus {
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .5),
+  box-shadow: var(--inset),
               0 0 0 3px var(--bad-wash),
               0 0 16px -4px rgba(255, 107, 107, .4);
 }
@@ -567,10 +574,10 @@ textarea { resize: vertical; min-height: 58px; font-family: var(--mono); font-si
   grid-auto-columns: 1fr;
   gap: 3px;
   padding: 3px;
-  background: var(--well);
+  background: var(--field);
   border: 1px solid var(--line);
   border-radius: var(--r1);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .5);
+  box-shadow: var(--inset-2);
 }
 .seg label {
   position: relative;
@@ -618,9 +625,9 @@ textarea { resize: vertical; min-height: 58px; font-family: var(--mono); font-si
 .sw i {
   position: absolute; inset: 0;
   border-radius: var(--pill);
-  background: var(--well);
+  background: var(--field);
   border: 1px solid var(--line);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .5);
+  box-shadow: var(--inset);
   transition: background .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease);
   pointer-events: none;
 }
@@ -850,4 +857,133 @@ pre.well .c { color: var(--c-cmt); font-style: italic; }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+/* ==========================================================================
+   MOTION
+
+   Rule: motion explains a change, it never decorates. Every animation below
+   exists because something in the UI previously snapped and left you to work
+   out what moved. Nothing here is ambient, nothing loops, nothing bounces.
+
+   Budget: micro-interactions 130ms, state changes 200ms, entrances 320ms.
+   Only transform and opacity are animated where possible, because those are
+   the two properties the compositor can handle without relayout — this panel
+   sits in an iframe over a heavy SPA and cannot afford layout thrash.
+
+   Everything is disabled under prefers-reduced-motion at the foot of the file.
+   ========================================================================== */
+
+:root {
+  --t-micro: 130ms;
+  --t-state: 200ms;
+  --t-enter: 320ms;
+  /* Decelerating curve: fast out of the gate, settles softly. Reads as
+     responsive rather than sluggish, which a symmetric ease never does. */
+  --ease-out: cubic-bezier(.16, .84, .44, 1);
+}
+
+/* ---- 1. Accordion open/close -------------------------------------------
+   <details> snaps. This was the most jarring thing in the panel: the whole
+   page jumped and you had to re-find your place. Height is driven from JS
+   via the Web Animations API; the fade is here. */
+
+.fold-body { will-change: height; }
+.fold[open] > summary .fold-name { color: var(--fg); }
+
+/* ---- 2. Tab panes -------------------------------------------------------
+   Panes swapped instantly with the hidden attribute, so switching tabs read
+   as a flicker rather than a change of view. */
+
+@keyframes paneIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: none; }
+}
+pre.well.pane-in { animation: paneIn var(--t-state) var(--ease-out); }
+
+/* ---- 3. The ready moment ------------------------------------------------
+   Going from Incomplete to Ready is the single most meaningful state change
+   in the tool and it happened silently. The rail and the flag acknowledge it
+   once. It fires on the transition only, never on every keystroke. */
+
+@keyframes railPulse {
+  0%   { box-shadow: 0 0 14px 1px var(--ac-glow); }
+  40%  { box-shadow: 0 0 26px 4px var(--ac-glow); }
+  100% { box-shadow: 0 0 14px 1px var(--ac-glow); }
+}
+.stmt.just-ready::before { animation: railPulse 620ms var(--ease-out); }
+
+@keyframes flagIn {
+  from { opacity: 0; transform: translateY(-3px) scale(.94); }
+  to   { opacity: 1; transform: none; }
+}
+.stmt-flag.just-ready { animation: flagIn var(--t-state) var(--ease-out); }
+
+/* ---- 4. Value changed ---------------------------------------------------
+   When the verb changes, the sentence rewrites in place with no signal that
+   anything happened. A single brief lift marks what moved. Discrete controls
+   only — this must never fire while you are typing. */
+
+@keyframes chipFlash {
+  0%   { background: var(--ac-wash); }
+  30%  { background: rgba(45, 212, 191, .3); }
+  100% { background: var(--ac-wash); }
+}
+.sentence .verb.flash,
+.sentence .chip.flash { animation: chipFlash 480ms var(--ease-out); }
+
+/* ---- 5. Copy confirmation ----------------------------------------------
+   The label swapped to "Copied" with no physical acknowledgement, which on a
+   primary action reads as uncertainty about whether the click registered. */
+
+@keyframes copyRing {
+  0%   { box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 0 0 0 var(--ac-glow); }
+  100% { box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 0 0 12px transparent; }
+}
+.btn.main.copied { animation: copyRing 560ms var(--ease-out); }
+
+/* Status pip acknowledges going live, once. */
+@keyframes pipOn {
+  0%   { box-shadow: 0 0 8px 1px var(--ac-glow); }
+  45%  { box-shadow: 0 0 12px 4px var(--ac-glow); }
+  100% { box-shadow: 0 0 8px 1px var(--ac-glow); }
+}
+.status.ok.just-ok .pip { animation: pipOn 620ms var(--ease-out); }
+
+/* ---- 6. First paint -----------------------------------------------------
+   Templates load async, so the workspace appeared fully formed after a beat
+   of nothing. A short staged rise covers the gap and reads as the panel
+   assembling rather than popping. Runs once, on boot only. */
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(7px); }
+  to   { opacity: 1; transform: none; }
+}
+.work.boot #cfg > * { animation: riseIn var(--t-enter) var(--ease-out) backwards; }
+.work.boot #cfg > *:nth-child(1) { animation-delay: 0ms; }
+.work.boot #cfg > *:nth-child(2) { animation-delay: 40ms; }
+.work.boot #cfg > *:nth-child(3) { animation-delay: 70ms; }
+.work.boot #cfg > *:nth-child(4) { animation-delay: 100ms; }
+.work.boot #cfg > *:nth-child(5) { animation-delay: 125ms; }
+.work.boot #cfg > *:nth-child(6) { animation-delay: 145ms; }
+.work.boot #cfg > *:nth-child(7) { animation-delay: 160ms; }
+.work.boot #cfg > *:nth-child(n+8) { animation-delay: 175ms; }
+.work.boot .credit { animation: riseIn var(--t-enter) var(--ease-out) 200ms backwards; }
+
+.out.boot { animation: riseIn var(--t-enter) var(--ease-out) 90ms backwards; }
+
+/* ---- Reduced motion -----------------------------------------------------
+   Not a courtesy. Vestibular disorders are real and this is a work tool.
+   The JS checks the same query and falls back to native <details> behaviour. */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .fold-body { will-change: auto; }
 }

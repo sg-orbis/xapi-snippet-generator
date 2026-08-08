@@ -127,3 +127,84 @@ Other changes:
 
 The v3.0 warm-paper skin is preserved as `panel-v3-paper.css` in case you want
 to switch back — it is a straight file swap.
+
+---
+
+# v3.1.1 — contrast fix
+
+**This fixes a bug I introduced in 3.1.0. Do not ship 3.1.0.**
+
+In 3.1.0 a single token, `--well`, was doing two jobs: the recessed input
+background and the code pane. In dark mode both are near-black so it looked
+correct. In light mode `--well` was deliberately kept dark (`#0d1219`) so the
+code pane stays a dark surface — which is right for the code pane and wrong for
+inputs, whose text uses `--fg` (`#0e1621` in light mode). The result was
+near-black text on a near-black field: form values were invisible.
+
+- `--well` is now the code pane only. `--field` is the recessed input surface —
+  near-black in dark, `#e9edf3` in light.
+- `--inset` / `--inset-2` carry the matching inner shadow, which has to be far
+  softer on a light background than on a dark one.
+- Dark is now genuinely the default. 3.1.0 deferred to `prefers-color-scheme`,
+  so a machine set to light landed in the light theme despite "dark-first".
+  First run is dark; the theme button cycles dark -> light -> auto.
+
+While fixing that, an automated contrast audit of every text-on-surface pair
+found four more failures, all now corrected:
+
+| Pair | Was | Now |
+|---|---|---|
+| Placeholder text (dark) | 2.59:1 | 5.31:1 |
+| Placeholder text (light) | 2.26:1 | 4.56:1 |
+| Code comments | 2.80:1 | 4.79:1 |
+| Accent text on card (light) | 3.74:1 | 5.47:1 |
+| Primary button label (light) | 3.74:1 | 6.36:1 |
+
+Every text-on-surface pair in both themes now clears 4.5:1, which is WCAG AA
+for normal-size text. Worst remaining pair is 4.54:1.
+
+---
+
+# v3.2.0 — motion
+
+Motion explains a change; it never decorates. Nothing here is ambient, nothing
+loops, nothing bounces. Six additions, each because the UI previously snapped
+and left you to work out what moved:
+
+1. **Accordions animate open and closed.** This was the worst offender — the
+   whole workspace jumped and you had to re-find your place. `<details>` cannot
+   be height-transitioned in CSS because the browser toggles `display` on the
+   content, so it is driven with the Web Animations API. The `open` attribute
+   stays authoritative, so a screen reader still sees a normal disclosure.
+2. **Tab panes fade and rise** instead of hard-swapping via `hidden`. Only a
+   pane that is actually appearing animates, so a re-render of the visible pane
+   does not flicker while you type.
+3. **Incomplete to Ready is acknowledged.** The accent rail and the flag pulse
+   once. Fires on the transition only, never while already ready.
+4. **The verb flashes when it changes.** Keyed off the resolved verb IRI, not an
+   input event, so typing never triggers it.
+5. **Copy has a physical confirmation** — an expanding ring on the button. A
+   primary action that only swaps a text label reads as uncertainty about
+   whether the click registered.
+6. **A staged rise on first paint.** Templates load async, so the workspace used
+   to appear fully formed after a beat of nothing. Runs once, on boot.
+
+Budget: 130ms micro-interactions, 200ms state changes, 320ms entrances, on a
+decelerating curve. Only `transform`, `opacity`, `box-shadow` and `background`
+are animated — the accordion is the sole exception, and it has to be, because
+height is the thing being communicated.
+
+`prefers-reduced-motion` disables all of it, and the JS checks the same query
+and falls back to native `<details>` behaviour rather than animating to zero
+duration.
+
+## Two bugs found while building this
+
+- **The pip pulse could never have fired.** `paintStates()` added the class and
+  `paintStatus()` ran immediately after, assigning `className` wholesale and
+  wiping it before a frame rendered. The transition is now reported to the
+  caller and pulsed after painting.
+- **Double-clicking an accordion closed it twice.** `open` stays `true` for the
+  duration of a closing animation, so a fast second click read the live
+  attribute and tried to close again instead of reopening. It now tracks
+  intent rather than the attribute.
